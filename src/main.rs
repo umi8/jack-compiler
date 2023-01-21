@@ -10,6 +10,7 @@ use crate::compilation::compilation_engine::XmlCompilationEngine;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
 mod compilation;
+mod symbol_table;
 mod tokenizer;
 
 /// Jack Compiler
