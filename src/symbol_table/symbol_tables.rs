@@ -9,6 +9,7 @@ pub struct SymbolTables {
 }
 
 impl SymbolTables {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         SymbolTables {
             class_table: Default::default(),
@@ -16,10 +17,12 @@ impl SymbolTables {
         }
     }
 
+    #[allow(dead_code)]
     pub fn start_subroutine(&mut self) {
         self.subroutine_table = Default::default()
     }
 
+    #[allow(dead_code)]
     pub fn define(&mut self, name: &str, type_name: &str, kind: Kind) {
         match kind {
             Kind::Static | Kind::Field => {
@@ -35,6 +38,7 @@ impl SymbolTables {
         }
     }
 
+    #[allow(dead_code)]
     pub fn var_count(&mut self, kind: Kind) -> usize {
         match kind {
             Kind::Static | Kind::Field => {
@@ -48,6 +52,7 @@ impl SymbolTables {
         }
     }
 
+    #[allow(dead_code)]
     pub fn kind_of(&mut self, name: &str) -> Option<&Kind> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(&s.kind),
@@ -58,6 +63,7 @@ impl SymbolTables {
         }
     }
 
+    #[allow(dead_code)]
     pub fn type_of(&mut self, name: &str) -> Option<String> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(String::from(&s.type_name)),
@@ -68,6 +74,7 @@ impl SymbolTables {
         }
     }
 
+    #[allow(dead_code)]
     pub fn index_of(&mut self, name: &str) -> Option<usize> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(s.index),
