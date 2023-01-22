@@ -5,6 +5,7 @@ use anyhow::Result;
 use crate::compilation::class_var_dec_compiler::ClassVarDecCompiler;
 use crate::compilation::subroutine_dec_compiler::SubroutineDecCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::key_word::KeyWord::Class;
@@ -16,6 +17,7 @@ impl ClassCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <class>
@@ -33,7 +35,7 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Static | KeyWord::Field => {
-                    ClassVarDecCompiler::compile(tokenizer, writer, written)?
+                    ClassVarDecCompiler::compile(tokenizer, writer, symbol_tables, written)?
                 }
                 _ => break,
             }
@@ -45,7 +47,7 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Constructor | KeyWord::Function | KeyWord::Method => {
-                    SubroutineDecCompiler::compile(tokenizer, writer, written)?
+                    SubroutineDecCompiler::compile(tokenizer, writer, symbol_tables, written)?
                 }
                 _ => break,
             }
@@ -64,6 +66,7 @@ mod tests {
 
     use crate::compilation::class_compiler::ClassCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
@@ -87,8 +90,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ClassCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -130,8 +135,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ClassCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -199,8 +206,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ClassCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

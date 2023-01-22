@@ -6,6 +6,7 @@ use crate::compilation::parameter_list_compiler::ParameterListCompiler;
 use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
 use crate::compilation::type_compiler::TypeCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::key_word::KeyWord::{Constructor, Function, Method, Void};
@@ -18,6 +19,7 @@ impl SubroutineDecCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <subroutineDec>
@@ -37,11 +39,11 @@ impl SubroutineDecCompiler {
         // ’(’
         writer.write_symbol(tokenizer, written)?;
         // parameterList
-        ParameterListCompiler::compile(tokenizer, writer, written)?;
+        ParameterListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’)’
         writer.write_symbol(tokenizer, written)?;
         // subroutineBody
-        SubroutineBodyCompiler::compile(tokenizer, writer, written)?;
+        SubroutineBodyCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // </subroutineDec>
         writer.write_end_tag("subroutineDec", written)?;
         Ok(())
@@ -54,10 +56,11 @@ mod tests {
 
     use crate::compilation::subroutine_dec_compiler::SubroutineDecCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_subroutine_dec() {
+    fn can_compile() {
         let expected = "\
 <subroutineDec>
   <keyword> function </keyword>
@@ -91,8 +94,14 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = SubroutineDecCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = SubroutineDecCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
