@@ -24,8 +24,8 @@ impl CompilationEngine for XmlCompilationEngine {
         }
     }
 
-    fn compile(&mut self, writer: &mut impl Write) -> Result<()> {
-        ClassCompiler::compile(&mut self.tokenizer, &mut self.writer, writer)?;
+    fn compile(&mut self, written: &mut impl Write) -> Result<()> {
+        ClassCompiler::compile(&mut self.tokenizer, &mut self.writer, written)?;
         Ok(())
     }
 }
