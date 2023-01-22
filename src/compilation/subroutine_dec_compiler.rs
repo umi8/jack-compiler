@@ -6,6 +6,7 @@ use crate::compilation::parameter_list_compiler::ParameterListCompiler;
 use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
 use crate::compilation::type_compiler::TypeCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
@@ -20,12 +21,18 @@ impl SubroutineDecCompiler {
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
+        class_name: &str,
         written: &mut impl Write,
     ) -> Result<()> {
+        symbol_tables.start_subroutine();
+        symbol_tables.define("this", class_name, &Kind::Argument);
+
         // <subroutineDec>
         writer.write_start_tag("subroutineDec", written)?;
+
         // ’constructor’ | ’function’ | ’method’
         writer.write_key_word(tokenizer, vec![Constructor, Function, Method], written)?;
+
         // ’void’ | type
         if tokenizer.peek()?.token_type() == &Keyword
             && KeyWord::from(tokenizer.peek()?.value())? == Void
@@ -34,18 +41,25 @@ impl SubroutineDecCompiler {
         } else {
             TypeCompiler::compile(tokenizer, writer, written)?
         }
+
         // subroutineName
         writer.write_identifier(tokenizer, written)?;
+
         // ’(’
         writer.write_symbol(tokenizer, written)?;
+
         // parameterList
         ParameterListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
         // ’)’
         writer.write_symbol(tokenizer, written)?;
+
         // subroutineBody
         SubroutineBodyCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
         // </subroutineDec>
         writer.write_end_tag("subroutineDec", written)?;
+
         Ok(())
     }
 }
@@ -100,6 +114,7 @@ mod tests {
             &mut tokenizer,
             &mut writer,
             &mut symbol_tables,
+            "Test",
             &mut output,
         );
         let actual = String::from_utf8(output).unwrap();

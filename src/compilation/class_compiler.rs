@@ -23,6 +23,7 @@ impl ClassCompiler {
         // <class>
         writer.write_start_tag("class", written)?;
         // ’class’
+        let class_name = String::from(tokenizer.peek()?.value());
         writer.write_key_word(tokenizer, vec![Class], written)?;
         // className
         writer.write_identifier(tokenizer, written)?;
@@ -47,7 +48,13 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Constructor | KeyWord::Function | KeyWord::Method => {
-                    SubroutineDecCompiler::compile(tokenizer, writer, symbol_tables, written)?
+                    SubroutineDecCompiler::compile(
+                        tokenizer,
+                        writer,
+                        symbol_tables,
+                        &class_name,
+                        written,
+                    )?
                 }
                 _ => break,
             }
