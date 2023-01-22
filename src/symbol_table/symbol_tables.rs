@@ -16,7 +16,6 @@ impl SymbolTables {
         }
     }
 
-    #[allow(dead_code)]
     pub fn start_subroutine(&mut self) {
         self.subroutine_table = Default::default()
     }
