@@ -4,6 +4,7 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::Let;
 
@@ -14,6 +15,7 @@ impl LetStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <letStatement>
@@ -21,20 +23,20 @@ impl LetStatementCompiler {
         // let
         writer.write_key_word(tokenizer, vec![Let], written)?;
         // varName
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
         // (’[’ expression ’]’)?
         if tokenizer.peek()?.value() == "[" {
             // ’[’
             writer.write_symbol(tokenizer, written)?;
             // expression
-            ExpressionCompiler::compile(tokenizer, writer, written)?;
+            ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
             // ’]’
             writer.write_symbol(tokenizer, written)?;
         }
         // ’=’
         writer.write_symbol(tokenizer, written)?;
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, written)?;
+        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’;’
         writer.write_symbol(tokenizer, written)?;
         // </letStatement>
@@ -49,6 +51,7 @@ mod tests {
 
     use crate::compilation::let_statement_compiler::LetStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
@@ -91,8 +94,14 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = LetStatementCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = LetStatementCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

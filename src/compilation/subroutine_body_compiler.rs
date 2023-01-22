@@ -34,7 +34,7 @@ impl SubroutineBodyCompiler {
             }
         }
         // statements
-        StatementsCompiler::compile(tokenizer, writer, written)?;
+        StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’}’
         writer.write_symbol(tokenizer, written)?;
         // </subroutineBody>

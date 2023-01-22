@@ -28,12 +28,12 @@ impl VarDecCompiler {
 
         // type
         let type_name = String::from(tokenizer.peek()?.value());
-        TypeCompiler::compile(tokenizer, writer, written)?;
+        TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
         // varName
         let var_name = String::from(tokenizer.peek()?.value());
         symbol_tables.define(&var_name, &type_name, &Kind::Var);
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
 
         // (’,’ varName)*
         loop {
@@ -44,7 +44,7 @@ impl VarDecCompiler {
                 // varName
                 let var_name = String::from(tokenizer.peek()?.value());
                 symbol_tables.define(&var_name, &type_name, &Kind::Var);
-                writer.write_identifier(tokenizer, written)?;
+                writer.write_identifier(tokenizer, symbol_tables, written)?;
             } else {
                 break;
             }

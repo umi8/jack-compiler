@@ -28,12 +28,12 @@ impl ClassVarDecCompiler {
 
         // type
         let type_name = String::from(tokenizer.peek()?.value());
-        TypeCompiler::compile(tokenizer, writer, written)?;
+        TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
         // varName
         let var_name = String::from(tokenizer.peek()?.value());
         symbol_tables.define(&var_name, &type_name, &kind);
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
 
         // (’,’ varName)*
         while tokenizer.peek()?.value() == "," {
@@ -43,7 +43,7 @@ impl ClassVarDecCompiler {
             // varName
             let var_name = String::from(tokenizer.peek()?.value());
             symbol_tables.define(&var_name, &type_name, &kind);
-            writer.write_identifier(tokenizer, written)?;
+            writer.write_identifier(tokenizer, symbol_tables, written)?;
         }
 
         // ;

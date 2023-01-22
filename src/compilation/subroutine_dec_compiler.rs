@@ -39,11 +39,11 @@ impl SubroutineDecCompiler {
         {
             writer.write_key_word(tokenizer, vec![Void], written)?
         } else {
-            TypeCompiler::compile(tokenizer, writer, written)?
+            TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?
         }
 
         // subroutineName
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
 
         // ’(’
         writer.write_symbol(tokenizer, written)?;

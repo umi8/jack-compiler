@@ -5,6 +5,7 @@ use crate::compilation::statements_compiler::StatementsCompiler;
 use anyhow::Result;
 
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::key_word::KeyWord::{Else, If};
@@ -17,6 +18,7 @@ impl IfStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <ifStatement>
@@ -26,13 +28,13 @@ impl IfStatementCompiler {
         // ’(’
         writer.write_symbol(tokenizer, written)?;
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, written)?;
+        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’)’
         writer.write_symbol(tokenizer, written)?;
         // ’{’
         writer.write_symbol(tokenizer, written)?;
         // statements
-        StatementsCompiler::compile(tokenizer, writer, written)?;
+        StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’}’
         writer.write_symbol(tokenizer, written)?;
         // (’else’ ’{’ statements ’}’)?
@@ -44,7 +46,7 @@ impl IfStatementCompiler {
             // ’{’
             writer.write_symbol(tokenizer, written)?;
             // statements
-            StatementsCompiler::compile(tokenizer, writer, written)?;
+            StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
             // ’}’
             writer.write_symbol(tokenizer, written)?;
         }

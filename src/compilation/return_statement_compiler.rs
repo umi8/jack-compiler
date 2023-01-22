@@ -4,6 +4,7 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::Return;
 
@@ -14,6 +15,7 @@ impl ReturnStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <returnStatement>
@@ -22,7 +24,7 @@ impl ReturnStatementCompiler {
         writer.write_key_word(tokenizer, vec![Return], written)?;
         // expression?
         if tokenizer.peek()?.value() != ";" {
-            ExpressionCompiler::compile(tokenizer, writer, written)?;
+            ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         }
         // ’;’
         writer.write_symbol(tokenizer, written)?;
@@ -38,6 +40,7 @@ mod tests {
 
     use crate::compilation::return_statement_compiler::ReturnStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
@@ -63,8 +66,14 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ReturnStatementCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = ReturnStatementCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

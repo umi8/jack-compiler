@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use crate::symbol_table::symbol_tables::SymbolTables;
 use anyhow::{bail, Error, Result};
 
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -47,6 +48,7 @@ impl XmlWriter {
     pub fn write_identifier(
         &mut self,
         tokenizer: &mut JackTokenizer,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         tokenizer.advance()?;

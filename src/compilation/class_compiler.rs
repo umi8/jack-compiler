@@ -26,7 +26,7 @@ impl ClassCompiler {
         let class_name = String::from(tokenizer.peek()?.value());
         writer.write_key_word(tokenizer, vec![Class], written)?;
         // className
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
         // {
         writer.write_symbol(tokenizer, written)?;
         // classVarDec*

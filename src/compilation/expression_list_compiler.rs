@@ -4,6 +4,7 @@ use crate::compilation::expression_compiler::ExpressionCompiler;
 use anyhow::Result;
 
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
 /// expressionList = (expression (’,’ expression)* )?
@@ -13,6 +14,7 @@ impl ExpressionListCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <expressionList>
@@ -20,13 +22,13 @@ impl ExpressionListCompiler {
         // (expression)?
         if tokenizer.is_term()? {
             // expression
-            ExpressionCompiler::compile(tokenizer, writer, written)?;
+            ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
             // (’,’ expression)*
             while tokenizer.peek()?.value() == "," {
                 // ’,’
                 writer.write_symbol(tokenizer, written)?;
                 // expression
-                ExpressionCompiler::compile(tokenizer, writer, written)?;
+                ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
             }
         }
         // </expressionList>
