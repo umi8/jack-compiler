@@ -1,3 +1,3 @@
-mod kind;
+pub mod kind;
 mod symbol;
-mod symbol_tables;
+pub mod symbol_tables;

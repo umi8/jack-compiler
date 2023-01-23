@@ -9,10 +9,10 @@ pub struct Symbol {
 
 impl Symbol {
     #[allow(dead_code)]
-    pub fn new(type_name: &str, kind: Kind, index: usize) -> Self {
+    pub fn new(type_name: &str, kind: &Kind, index: usize) -> Self {
         Symbol {
             type_name: String::from(type_name),
-            kind,
+            kind: Kind::from(kind),
             index,
         }
     }

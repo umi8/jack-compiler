@@ -5,6 +5,7 @@ use anyhow::Result;
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::{False, Null, This, True};
 use crate::tokenizer::token_type::TokenType;
@@ -16,6 +17,7 @@ impl TermCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <term>
@@ -32,7 +34,7 @@ impl TermCompiler {
                     // '('
                     writer.write_symbol(tokenizer, written)?;
                     // expression
-                    ExpressionCompiler::compile(tokenizer, writer, written)?;
+                    ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
                     // ')'
                     writer.write_symbol(tokenizer, written)?;
                 }
@@ -40,7 +42,7 @@ impl TermCompiler {
                     // unaryOp
                     writer.write_symbol(tokenizer, written)?;
                     // term
-                    TermCompiler::compile(tokenizer, writer, written)?;
+                    TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
                 }
                 _ => {}
             },
@@ -48,16 +50,18 @@ impl TermCompiler {
                 match tokenizer.peek_second()?.value().as_str() {
                     "[" => {
                         // varName
-                        writer.write_identifier(tokenizer, written)?;
+                        writer.write_identifier(tokenizer, symbol_tables, written)?;
                         // '['
                         writer.write_symbol(tokenizer, written)?;
                         // expression
-                        ExpressionCompiler::compile(tokenizer, writer, written)?;
+                        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
                         // ']'
                         writer.write_symbol(tokenizer, written)?;
                     }
-                    "." | "(" => SubroutineCallCompiler::compile(tokenizer, writer, written)?,
-                    _ => writer.write_identifier(tokenizer, written)?,
+                    "." | "(" => {
+                        SubroutineCallCompiler::compile(tokenizer, writer, symbol_tables, written)?
+                    }
+                    _ => writer.write_identifier(tokenizer, symbol_tables, written)?,
                 }
             }
             TokenType::IntConst => writer.write_integer_constant(tokenizer, written)?,
@@ -72,18 +76,21 @@ impl TermCompiler {
 
 #[cfg(test)]
 mod tests {
-    use crate::compilation::term_compiler::TermCompiler;
     use std::io::{Seek, SeekFrom, Write};
 
+    use crate::compilation::term_compiler::TermCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_term() {
+    fn can_compile() {
         let expected = "\
 <term>
+  <category> Class </category>
   <identifier> Keyboard </identifier>
   <symbol> . </symbol>
+  <category> Subroutine </category>
   <identifier> readInt </identifier>
   <symbol> ( </symbol>
   <expressionList>
@@ -106,8 +113,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = TermCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

@@ -4,6 +4,7 @@ use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
 use anyhow::Result;
 
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::Do;
 
@@ -14,6 +15,7 @@ impl DoStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <doStatement>
@@ -21,7 +23,7 @@ impl DoStatementCompiler {
         // do
         writer.write_key_word(tokenizer, vec![Do], written)?;
         // subroutineCall
-        SubroutineCallCompiler::compile(tokenizer, writer, written)?;
+        SubroutineCallCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’;’
         writer.write_symbol(tokenizer, written)?;
         // </doStatement>
@@ -36,15 +38,18 @@ mod tests {
     use std::io::{Seek, SeekFrom, Write};
 
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_do_statement() {
+    fn can_compile() {
         let expected = "\
 <doStatement>
   <keyword> do </keyword>
+  <category> Class </category>
   <identifier> Output </identifier>
   <symbol> . </symbol>
+  <category> Subroutine </category>
   <identifier> printString </identifier>
   <symbol> ( </symbol>
   <expressionList>
@@ -68,8 +73,14 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = DoStatementCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = DoStatementCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

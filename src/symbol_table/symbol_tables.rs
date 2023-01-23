@@ -9,7 +9,6 @@ pub struct SymbolTables {
 }
 
 impl SymbolTables {
-    #[allow(dead_code)]
     pub fn new() -> Self {
         SymbolTables {
             class_table: Default::default(),
@@ -17,13 +16,11 @@ impl SymbolTables {
         }
     }
 
-    #[allow(dead_code)]
     pub fn start_subroutine(&mut self) {
         self.subroutine_table = Default::default()
     }
 
-    #[allow(dead_code)]
-    pub fn define(&mut self, name: &str, type_name: &str, kind: Kind) {
+    pub fn define(&mut self, name: &str, type_name: &str, kind: &Kind) {
         match kind {
             Kind::Static | Kind::Field => {
                 let index = self.class_table.len();
@@ -92,7 +89,7 @@ mod tests {
     #[test]
     fn can_start_subroutine() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Var);
+        symbol_tables.define("is_test", "boolean", &Kind::Var);
         symbol_tables.start_subroutine();
         let actual = symbol_tables.subroutine_table.len();
         assert_eq!(0, actual);
@@ -101,24 +98,24 @@ mod tests {
     #[test]
     fn can_define_class_scope_symbol() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Static);
+        symbol_tables.define("is_test", "boolean", &Kind::Static);
         let actual = symbol_tables.class_table.get("is_test").unwrap();
-        assert_eq!(Symbol::new("boolean", Kind::Static, 0), *actual);
+        assert_eq!(Symbol::new("boolean", &Kind::Static, 0), *actual);
     }
 
     #[test]
     fn can_define_subroutine_scope_symbol() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Var);
+        symbol_tables.define("is_test", "boolean", &Kind::Var);
         let actual = symbol_tables.subroutine_table.get("is_test").unwrap();
-        assert_eq!(Symbol::new("boolean", Kind::Var, 0), *actual);
+        assert_eq!(Symbol::new("boolean", &Kind::Var, 0), *actual);
     }
 
     #[test]
     fn can_count_number_of_kind() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("count", "int", Kind::Var);
-        symbol_tables.define("is_test", "boolean", Kind::Var);
+        symbol_tables.define("count", "int", &Kind::Var);
+        symbol_tables.define("is_test", "boolean", &Kind::Var);
         let actual = symbol_tables.var_count(Kind::Var);
         assert_eq!(2, actual);
     }
@@ -126,7 +123,7 @@ mod tests {
     #[test]
     fn can_get_kind_of_subroutine_scope_from_name() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Argument);
+        symbol_tables.define("is_test", "boolean", &Kind::Argument);
         let actual = symbol_tables.kind_of("is_test").unwrap();
         assert_eq!(Kind::Argument, *actual);
     }
@@ -134,7 +131,7 @@ mod tests {
     #[test]
     fn can_get_kind_of_class_scope_from_name() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Field);
+        symbol_tables.define("is_test", "boolean", &Kind::Field);
         let actual = symbol_tables.kind_of("is_test").unwrap();
         assert_eq!(Kind::Field, *actual)
     }
@@ -142,7 +139,7 @@ mod tests {
     #[test]
     fn can_get_kind_of_none() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Field);
+        symbol_tables.define("is_test", "boolean", &Kind::Field);
         let actual = symbol_tables.kind_of("hoge");
         assert!(actual.is_none());
     }
@@ -150,7 +147,7 @@ mod tests {
     #[test]
     fn can_get_type_of_subroutine_scope_from_name() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Argument);
+        symbol_tables.define("is_test", "boolean", &Kind::Argument);
         let actual = symbol_tables.type_of("is_test").unwrap();
         assert_eq!("boolean", actual);
     }
@@ -158,7 +155,7 @@ mod tests {
     #[test]
     fn can_get_type_of_class_scope_from_name() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Field);
+        symbol_tables.define("is_test", "boolean", &Kind::Field);
         let actual = symbol_tables.type_of("is_test").unwrap();
         assert_eq!("boolean", actual)
     }
@@ -166,7 +163,7 @@ mod tests {
     #[test]
     fn can_get_index_of_subroutine_scope_from_name() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Argument);
+        symbol_tables.define("is_test", "boolean", &Kind::Argument);
         let actual = symbol_tables.index_of("is_test").unwrap();
         assert_eq!(0, actual);
     }
@@ -174,7 +171,7 @@ mod tests {
     #[test]
     fn can_get_index_of_class_scope_from_name() {
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("is_test", "boolean", Kind::Field);
+        symbol_tables.define("is_test", "boolean", &Kind::Field);
         let actual = symbol_tables.index_of("is_test").unwrap();
         assert_eq!(0, actual)
     }

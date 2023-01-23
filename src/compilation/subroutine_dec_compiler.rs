@@ -6,6 +6,8 @@ use crate::compilation::parameter_list_compiler::ParameterListCompiler;
 use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
 use crate::compilation::type_compiler::TypeCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::kind::Kind;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::key_word::KeyWord::{Constructor, Function, Method, Void};
@@ -18,32 +20,46 @@ impl SubroutineDecCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
+        class_name: &str,
         written: &mut impl Write,
     ) -> Result<()> {
+        symbol_tables.start_subroutine();
+        symbol_tables.define("this", class_name, &Kind::Argument);
+
         // <subroutineDec>
         writer.write_start_tag("subroutineDec", written)?;
+
         // ’constructor’ | ’function’ | ’method’
         writer.write_key_word(tokenizer, vec![Constructor, Function, Method], written)?;
+
         // ’void’ | type
         if tokenizer.peek()?.token_type() == &Keyword
             && KeyWord::from(tokenizer.peek()?.value())? == Void
         {
             writer.write_key_word(tokenizer, vec![Void], written)?
         } else {
-            TypeCompiler::compile(tokenizer, writer, written)?
+            TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?
         }
+
         // subroutineName
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
+
         // ’(’
         writer.write_symbol(tokenizer, written)?;
+
         // parameterList
-        ParameterListCompiler::compile(tokenizer, writer, written)?;
+        ParameterListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
         // ’)’
         writer.write_symbol(tokenizer, written)?;
+
         // subroutineBody
-        SubroutineBodyCompiler::compile(tokenizer, writer, written)?;
+        SubroutineBodyCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
         // </subroutineDec>
         writer.write_end_tag("subroutineDec", written)?;
+
         Ok(())
     }
 }
@@ -54,14 +70,16 @@ mod tests {
 
     use crate::compilation::subroutine_dec_compiler::SubroutineDecCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_subroutine_dec() {
+    fn can_compile() {
         let expected = "\
 <subroutineDec>
   <keyword> function </keyword>
   <keyword> void </keyword>
+  <category> Subroutine </category>
   <identifier> main </identifier>
   <symbol> ( </symbol>
   <parameterList>
@@ -91,8 +109,15 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = SubroutineDecCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = SubroutineDecCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            "Test",
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

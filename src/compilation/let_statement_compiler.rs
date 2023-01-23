@@ -4,6 +4,7 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::Let;
 
@@ -14,6 +15,7 @@ impl LetStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <letStatement>
@@ -21,20 +23,20 @@ impl LetStatementCompiler {
         // let
         writer.write_key_word(tokenizer, vec![Let], written)?;
         // varName
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
         // (’[’ expression ’]’)?
         if tokenizer.peek()?.value() == "[" {
             // ’[’
             writer.write_symbol(tokenizer, written)?;
             // expression
-            ExpressionCompiler::compile(tokenizer, writer, written)?;
+            ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
             // ’]’
             writer.write_symbol(tokenizer, written)?;
         }
         // ’=’
         writer.write_symbol(tokenizer, written)?;
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, written)?;
+        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’;’
         writer.write_symbol(tokenizer, written)?;
         // </letStatement>
@@ -49,19 +51,26 @@ mod tests {
 
     use crate::compilation::let_statement_compiler::LetStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_let_statement() {
+    fn can_compile() {
         let expected = "\
 <letStatement>
   <keyword> let </keyword>
+  <category> Var </category>
+  <kind> Var </kind>
+  <index> 0 </index>
   <identifier> length </identifier>
   <symbol> = </symbol>
   <expression>
     <term>
+      <category> Class </category>
       <identifier> Keyboard </identifier>
       <symbol> . </symbol>
+      <category> Subroutine </category>
       <identifier> readInt </identifier>
       <symbol> ( </symbol>
       <expressionList>
@@ -91,8 +100,15 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("length", "int", &Kind::Var);
 
-        let result = LetStatementCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = LetStatementCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

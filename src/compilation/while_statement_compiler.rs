@@ -5,6 +5,7 @@ use anyhow::Result;
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::statements_compiler::StatementsCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::While;
 
@@ -15,6 +16,7 @@ impl WhileStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <whileStatement>
@@ -24,13 +26,13 @@ impl WhileStatementCompiler {
         // ’(’
         writer.write_symbol(tokenizer, written)?;
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, written)?;
+        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’)’
         writer.write_symbol(tokenizer, written)?;
         // ’{’
         writer.write_symbol(tokenizer, written)?;
         // statements
-        StatementsCompiler::compile(tokenizer, writer, written)?;
+        StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         // ’}’
         writer.write_symbol(tokenizer, written)?;
         // </whileStatement>
@@ -45,6 +47,8 @@ mod tests {
     use std::io::{Seek, SeekFrom, Write};
 
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
@@ -55,10 +59,16 @@ mod tests {
   <symbol> ( </symbol>
   <expression>
     <term>
+      <category> Var </category>
+      <kind> Var </kind>
+      <index> 0 </index>
       <identifier> i </identifier>
     </term>
     <symbol> &lt; </symbol>
     <term>
+      <category> Var </category>
+      <kind> Var </kind>
+      <index> 1 </index>
       <identifier> length </identifier>
     </term>
   </expression>
@@ -67,10 +77,16 @@ mod tests {
   <statements>
     <letStatement>
       <keyword> let </keyword>
+      <category> Var </category>
+      <kind> Var </kind>
+      <index> 2 </index>
       <identifier> a </identifier>
       <symbol> [ </symbol>
       <expression>
         <term>
+          <category> Var </category>
+          <kind> Var </kind>
+          <index> 0 </index>
           <identifier> i </identifier>
         </term>
       </expression>
@@ -78,8 +94,10 @@ mod tests {
       <symbol> = </symbol>
       <expression>
         <term>
+          <category> Class </category>
           <identifier> Keyboard </identifier>
           <symbol> . </symbol>
+          <category> Subroutine </category>
           <identifier> readInt </identifier>
           <symbol> ( </symbol>
           <expressionList>
@@ -96,10 +114,16 @@ mod tests {
     </letStatement>
     <letStatement>
       <keyword> let </keyword>
+      <category> Var </category>
+      <kind> Var </kind>
+      <index> 0 </index>
       <identifier> i </identifier>
       <symbol> = </symbol>
       <expression>
         <term>
+          <category> Var </category>
+          <kind> Var </kind>
+          <index> 0 </index>
           <identifier> i </identifier>
         </term>
         <symbol> + </symbol>
@@ -130,8 +154,17 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("i", "int", &Kind::Var);
+        symbol_tables.define("length", "int", &Kind::Var);
+        symbol_tables.define("a", "int", &Kind::Var);
 
-        let result = WhileStatementCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result = WhileStatementCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
         let actual = String::from_utf8(output).unwrap();
 
         assert_eq!(expected, actual);

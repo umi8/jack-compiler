@@ -5,6 +5,7 @@ use anyhow::Result;
 use crate::compilation::class_var_dec_compiler::ClassVarDecCompiler;
 use crate::compilation::subroutine_dec_compiler::SubroutineDecCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::key_word::KeyWord::Class;
@@ -16,14 +17,16 @@ impl ClassCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
         writer: &mut XmlWriter,
+        symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // <class>
         writer.write_start_tag("class", written)?;
         // ’class’
+        let class_name = String::from(tokenizer.peek()?.value());
         writer.write_key_word(tokenizer, vec![Class], written)?;
         // className
-        writer.write_identifier(tokenizer, written)?;
+        writer.write_identifier(tokenizer, symbol_tables, written)?;
         // {
         writer.write_symbol(tokenizer, written)?;
         // classVarDec*
@@ -33,7 +36,7 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Static | KeyWord::Field => {
-                    ClassVarDecCompiler::compile(tokenizer, writer, written)?
+                    ClassVarDecCompiler::compile(tokenizer, writer, symbol_tables, written)?
                 }
                 _ => break,
             }
@@ -45,7 +48,13 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Constructor | KeyWord::Function | KeyWord::Method => {
-                    SubroutineDecCompiler::compile(tokenizer, writer, written)?
+                    SubroutineDecCompiler::compile(
+                        tokenizer,
+                        writer,
+                        symbol_tables,
+                        &class_name,
+                        written,
+                    )?
                 }
                 _ => break,
             }
@@ -64,6 +73,7 @@ mod tests {
 
     use crate::compilation::class_compiler::ClassCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
@@ -71,6 +81,7 @@ mod tests {
         let expected = "\
 <class>
   <keyword> class </keyword>
+  <category> Class </category>
   <identifier> Main </identifier>
   <symbol> { </symbol>
   <symbol> } </symbol>
@@ -87,8 +98,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ClassCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -100,17 +113,24 @@ mod tests {
         let expected = "\
 <class>
   <keyword> class </keyword>
+  <category> Class </category>
   <identifier> Main </identifier>
   <symbol> { </symbol>
   <classVarDec>
     <keyword> static </keyword>
     <keyword> boolean </keyword>
+    <category> Static </category>
+    <kind> Static </kind>
+    <index> 0 </index>
     <identifier> test </identifier>
     <symbol> ; </symbol>
   </classVarDec>
   <classVarDec>
     <keyword> static </keyword>
     <keyword> boolean </keyword>
+    <category> Static </category>
+    <kind> Static </kind>
+    <index> 1 </index>
     <identifier> test </identifier>
     <symbol> ; </symbol>
   </classVarDec>
@@ -130,8 +150,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ClassCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -143,11 +165,13 @@ mod tests {
         let expected = "\
 <class>
   <keyword> class </keyword>
+  <category> Class </category>
   <identifier> Main </identifier>
   <symbol> { </symbol>
   <subroutineDec>
     <keyword> function </keyword>
     <keyword> void </keyword>
+    <category> Subroutine </category>
     <identifier> main </identifier>
     <symbol> ( </symbol>
     <parameterList>
@@ -167,6 +191,7 @@ mod tests {
   <subroutineDec>
     <keyword> function </keyword>
     <keyword> boolean </keyword>
+    <category> Subroutine </category>
     <identifier> isSomething </identifier>
     <symbol> ( </symbol>
     <parameterList>
@@ -199,8 +224,10 @@ mod tests {
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
-        let result = ClassCompiler::compile(&mut tokenizer, &mut writer, &mut output);
+        let result =
+            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
