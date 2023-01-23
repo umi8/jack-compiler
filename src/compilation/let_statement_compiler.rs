@@ -51,6 +51,7 @@ mod tests {
 
     use crate::compilation::let_statement_compiler::LetStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -59,6 +60,9 @@ mod tests {
         let expected = "\
 <letStatement>
   <keyword> let </keyword>
+  <kind> Var </kind>
+  <type> int </type>
+  <index> 0 </index>
   <identifier> length </identifier>
   <symbol> = </symbol>
   <expression>
@@ -95,6 +99,7 @@ mod tests {
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("length", "int", &Kind::Var);
 
         let result = LetStatementCompiler::compile(
             &mut tokenizer,

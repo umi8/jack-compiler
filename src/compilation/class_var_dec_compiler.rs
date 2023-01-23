@@ -70,6 +70,9 @@ mod tests {
 <classVarDec>
   <keyword> static </keyword>
   <keyword> boolean </keyword>
+  <kind> Static </kind>
+  <type> boolean </type>
+  <index> 0 </index>
   <identifier> test </identifier>
   <symbol> ; </symbol>
 </classVarDec>
@@ -104,8 +107,14 @@ mod tests {
 <classVarDec>
   <keyword> static </keyword>
   <keyword> boolean </keyword>
+  <kind> Static </kind>
+  <type> boolean </type>
+  <index> 0 </index>
   <identifier> test </identifier>
   <symbol> , </symbol>
+  <kind> Static </kind>
+  <type> boolean </type>
+  <index> 1 </index>
   <identifier> hoge </identifier>
   <symbol> ; </symbol>
 </classVarDec>

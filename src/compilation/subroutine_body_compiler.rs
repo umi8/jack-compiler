@@ -60,12 +60,18 @@ mod tests {
   <varDec>
     <keyword> var </keyword>
     <identifier> Array </identifier>
+    <kind> Var </kind>
+    <type> Array </type>
+    <index> 0 </index>
     <identifier> a </identifier>
     <symbol> ; </symbol>
   </varDec>
   <varDec>
     <keyword> var </keyword>
     <keyword> int </keyword>
+    <kind> Var </kind>
+    <type> int </type>
+    <index> 1 </index>
     <identifier> length </identifier>
     <symbol> ; </symbol>
   </varDec>

@@ -1,8 +1,8 @@
 use std::io::Write;
 
-use crate::symbol_table::symbol_tables::SymbolTables;
 use anyhow::{bail, Error, Result};
 
+use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::token_type::TokenType;
@@ -53,12 +53,26 @@ impl XmlWriter {
     ) -> Result<()> {
         tokenizer.advance()?;
         match tokenizer.token_type()? {
-            TokenType::Identifier => writeln!(
-                written,
-                "{}<identifier> {} </identifier>",
-                self.indent,
-                tokenizer.identifier()
-            )?,
+            TokenType::Identifier => {
+                let var_name = tokenizer.identifier();
+
+                if let Some(kind) = symbol_tables.kind_of(var_name) {
+                    writeln!(written, "{}<kind> {} </kind>", self.indent, kind)?;
+                }
+                if let Some(type_name) = symbol_tables.type_of(var_name) {
+                    writeln!(written, "{}<type> {} </type>", self.indent, type_name)?;
+                }
+                if let Some(index) = symbol_tables.index_of(var_name) {
+                    writeln!(written, "{}<index> {} </index>", self.indent, index)?;
+                }
+
+                writeln!(
+                    written,
+                    "{}<identifier> {} </identifier>",
+                    self.indent,
+                    tokenizer.identifier()
+                )?;
+            }
             _ => bail!(Error::msg("Illegal token")),
         }
         Ok(())

@@ -75,10 +75,19 @@ mod tests {
 <varDec>
   <keyword> var </keyword>
   <keyword> int </keyword>
+  <kind> Var </kind>
+  <type> int </type>
+  <index> 0 </index>
   <identifier> i </identifier>
   <symbol> , </symbol>
+  <kind> Var </kind>
+  <type> int </type>
+  <index> 1 </index>
   <identifier> j </identifier>
   <symbol> , </symbol>
+  <kind> Var </kind>
+  <type> int </type>
+  <index> 2 </index>
   <identifier> sum </identifier>
   <symbol> ; </symbol>
 </varDec>
