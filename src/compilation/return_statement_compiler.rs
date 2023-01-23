@@ -40,6 +40,7 @@ mod tests {
 
     use crate::compilation::return_statement_compiler::ReturnStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -50,6 +51,9 @@ mod tests {
   <keyword> return </keyword>
   <expression>
     <term>
+      <category> Var </category>
+      <kind> Var </kind>
+      <index> 0 </index>
       <identifier> x </identifier>
     </term>
   </expression>
@@ -67,6 +71,7 @@ mod tests {
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("x", "int", &Kind::Var);
 
         let result = ReturnStatementCompiler::compile(
             &mut tokenizer,

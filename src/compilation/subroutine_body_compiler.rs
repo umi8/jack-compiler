@@ -59,9 +59,10 @@ mod tests {
   <symbol> { </symbol>
   <varDec>
     <keyword> var </keyword>
+    <category> Class </category>
     <identifier> Array </identifier>
+    <category> Var </category>
     <kind> Var </kind>
-    <type> Array </type>
     <index> 0 </index>
     <identifier> a </identifier>
     <symbol> ; </symbol>
@@ -69,8 +70,8 @@ mod tests {
   <varDec>
     <keyword> var </keyword>
     <keyword> int </keyword>
+    <category> Var </category>
     <kind> Var </kind>
-    <type> int </type>
     <index> 1 </index>
     <identifier> length </identifier>
     <symbol> ; </symbol>

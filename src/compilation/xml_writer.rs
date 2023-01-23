@@ -56,12 +56,28 @@ impl XmlWriter {
             TokenType::Identifier => {
                 let var_name = tokenizer.identifier();
 
+                // Category
+                match symbol_tables.kind_of(var_name) {
+                    None => {
+                        if var_name.chars().collect::<Vec<char>>()[0].is_uppercase() {
+                            writeln!(written, "{}<category> Class </category>", self.indent)?;
+                        } else {
+                            writeln!(written, "{}<category> Subroutine </category>", self.indent)?;
+                        }
+                    }
+                    Some(kind) => {
+                        writeln!(written, "{}<category> {} </category>", self.indent, kind)?;
+                    }
+                }
+
+                // is_defined or used
+
+                // kind
                 if let Some(kind) = symbol_tables.kind_of(var_name) {
                     writeln!(written, "{}<kind> {} </kind>", self.indent, kind)?;
                 }
-                if let Some(type_name) = symbol_tables.type_of(var_name) {
-                    writeln!(written, "{}<type> {} </type>", self.indent, type_name)?;
-                }
+
+                // execution number
                 if let Some(index) = symbol_tables.index_of(var_name) {
                     writeln!(written, "{}<index> {} </index>", self.indent, index)?;
                 }

@@ -45,10 +45,12 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_subroutine_call() {
+    fn can_compile() {
         let expected = "\
+<category> Class </category>
 <identifier> Keyboard </identifier>
 <symbol> . </symbol>
+<category> Subroutine </category>
 <identifier> readInt </identifier>
 <symbol> ( </symbol>
 <expressionList>

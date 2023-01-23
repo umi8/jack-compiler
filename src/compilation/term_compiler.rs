@@ -84,11 +84,13 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_term() {
+    fn can_compile() {
         let expected = "\
 <term>
+  <category> Class </category>
   <identifier> Keyboard </identifier>
   <symbol> . </symbol>
+  <category> Subroutine </category>
   <identifier> readInt </identifier>
   <symbol> ( </symbol>
   <expressionList>

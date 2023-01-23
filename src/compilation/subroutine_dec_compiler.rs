@@ -79,6 +79,7 @@ mod tests {
 <subroutineDec>
   <keyword> function </keyword>
   <keyword> void </keyword>
+  <category> Subroutine </category>
   <identifier> main </identifier>
   <symbol> ( </symbol>
   <parameterList>

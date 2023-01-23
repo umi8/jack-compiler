@@ -42,12 +42,14 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_do_statement() {
+    fn can_compile() {
         let expected = "\
 <doStatement>
   <keyword> do </keyword>
+  <category> Class </category>
   <identifier> Output </identifier>
   <symbol> . </symbol>
+  <category> Subroutine </category>
   <identifier> printString </identifier>
   <symbol> ( </symbol>
   <expressionList>

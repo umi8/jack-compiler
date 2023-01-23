@@ -56,19 +56,21 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_let_statement() {
+    fn can_compile() {
         let expected = "\
 <letStatement>
   <keyword> let </keyword>
+  <category> Var </category>
   <kind> Var </kind>
-  <type> int </type>
   <index> 0 </index>
   <identifier> length </identifier>
   <symbol> = </symbol>
   <expression>
     <term>
+      <category> Class </category>
       <identifier> Keyboard </identifier>
       <symbol> . </symbol>
+      <category> Subroutine </category>
       <identifier> readInt </identifier>
       <symbol> ( </symbol>
       <expressionList>

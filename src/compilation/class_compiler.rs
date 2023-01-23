@@ -81,6 +81,7 @@ mod tests {
         let expected = "\
 <class>
   <keyword> class </keyword>
+  <category> Class </category>
   <identifier> Main </identifier>
   <symbol> { </symbol>
   <symbol> } </symbol>
@@ -112,13 +113,14 @@ mod tests {
         let expected = "\
 <class>
   <keyword> class </keyword>
+  <category> Class </category>
   <identifier> Main </identifier>
   <symbol> { </symbol>
   <classVarDec>
     <keyword> static </keyword>
     <keyword> boolean </keyword>
+    <category> Static </category>
     <kind> Static </kind>
-    <type> boolean </type>
     <index> 0 </index>
     <identifier> test </identifier>
     <symbol> ; </symbol>
@@ -126,8 +128,8 @@ mod tests {
   <classVarDec>
     <keyword> static </keyword>
     <keyword> boolean </keyword>
+    <category> Static </category>
     <kind> Static </kind>
-    <type> boolean </type>
     <index> 1 </index>
     <identifier> test </identifier>
     <symbol> ; </symbol>
@@ -163,11 +165,13 @@ mod tests {
         let expected = "\
 <class>
   <keyword> class </keyword>
+  <category> Class </category>
   <identifier> Main </identifier>
   <symbol> { </symbol>
   <subroutineDec>
     <keyword> function </keyword>
     <keyword> void </keyword>
+    <category> Subroutine </category>
     <identifier> main </identifier>
     <symbol> ( </symbol>
     <parameterList>
@@ -187,6 +191,7 @@ mod tests {
   <subroutineDec>
     <keyword> function </keyword>
     <keyword> boolean </keyword>
+    <category> Subroutine </category>
     <identifier> isSomething </identifier>
     <symbol> ( </symbol>
     <parameterList>
