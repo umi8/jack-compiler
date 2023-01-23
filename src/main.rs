@@ -12,6 +12,7 @@ use crate::tokenizer::jack_tokenizer::JackTokenizer;
 mod compilation;
 mod symbol_table;
 mod tokenizer;
+mod writer;
 
 /// Jack Compiler
 #[derive(Parser)]
