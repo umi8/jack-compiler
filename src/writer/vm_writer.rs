@@ -1,3 +1,7 @@
+use std::io::Write;
+
+use anyhow::Result;
+
 use crate::writer::command::Command;
 use crate::writer::segment::Segment;
 
@@ -36,7 +40,24 @@ impl VmWriter {
         todo!()
     }
 
-    pub fn write_return() {
-        todo!()
+    pub fn write_return(written: &mut impl Write) -> Result<()> {
+        writeln!(written, "return")?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::writer::vm_writer::VmWriter;
+
+    #[test]
+    fn can_write_return() {
+        let expected = "\
+        return
+";
+        let mut output = Vec::<u8>::new();
+        VmWriter::write_return(&mut output).unwrap();
+        let actual = String::from_utf8(output).unwrap();
+        assert_eq!(expected, actual)
     }
 }
