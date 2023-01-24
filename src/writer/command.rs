@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum Command {
     Add,
