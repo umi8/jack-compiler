@@ -68,67 +68,49 @@ mod tests {
 
     #[test]
     fn can_write_push() {
-        let expected = "\
-        push argument 0
-";
         let mut output = Vec::<u8>::new();
         VmWriter::write_push(&Segment::Argument, 0, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
-        assert_eq!(expected, actual)
+        assert_eq!("push argument 0\n", actual)
     }
 
     #[test]
     fn can_write_pop() {
-        let expected = "\
-        pop this 1
-";
         let mut output = Vec::<u8>::new();
         VmWriter::write_pop(&Segment::This, 1, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
-        assert_eq!(expected, actual)
+        assert_eq!("pop this 1\n", actual)
     }
 
     #[test]
     fn can_write_arithmetic() {
-        let expected = "\
-        add
-";
         let mut output = Vec::<u8>::new();
         VmWriter::write_arithmetic(&Command::Add, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
-        assert_eq!(expected, actual)
+        assert_eq!("add\n", actual)
     }
 
     #[test]
     fn can_write_call() {
-        let expected = "\
-        call Math.multiply 2
-";
         let mut output = Vec::<u8>::new();
         VmWriter::write_call("Math.multiply", 2, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
-        assert_eq!(expected, actual)
+        assert_eq!("call Math.multiply 2\n", actual)
     }
 
     #[test]
     fn can_write_function() {
-        let expected = "\
-        function Main.main 2
-";
         let mut output = Vec::<u8>::new();
         VmWriter::write_function("Main.main", 2, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
-        assert_eq!(expected, actual)
+        assert_eq!("function Main.main 2\n", actual)
     }
 
     #[test]
     fn can_write_return() {
-        let expected = "\
-        return
-";
         let mut output = Vec::<u8>::new();
         VmWriter::write_return(&mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
-        assert_eq!(expected, actual)
+        assert_eq!("return\n", actual)
     }
 }
