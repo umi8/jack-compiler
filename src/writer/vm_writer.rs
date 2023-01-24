@@ -33,8 +33,9 @@ impl VmWriter {
         todo!()
     }
 
-    pub fn write_call(name: &str, n_args: usize) {
-        todo!()
+    pub fn write_call(name: &str, n_args: usize, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "call {} {}", name, n_args)?;
+        Ok(())
     }
 
     pub fn write_function(name: &str, n_locals: usize, written: &mut impl Write) -> Result<()> {
@@ -60,6 +61,17 @@ mod tests {
 ";
         let mut output = Vec::<u8>::new();
         VmWriter::write_arithmetic(&Command::Add, &mut output).unwrap();
+        let actual = String::from_utf8(output).unwrap();
+        assert_eq!(expected, actual)
+    }
+
+    #[test]
+    fn can_write_call() {
+        let expected = "\
+        call Math.multiply 2
+";
+        let mut output = Vec::<u8>::new();
+        VmWriter::write_call("Math.multiply", 2, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
         assert_eq!(expected, actual)
     }
