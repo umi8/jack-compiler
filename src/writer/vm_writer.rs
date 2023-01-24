@@ -25,17 +25,17 @@ impl VmWriter {
     }
 
     #[allow(dead_code)]
-    pub fn write_label(label: &str) {
+    pub fn write_label(_label: &str) {
         todo!()
     }
 
     #[allow(dead_code)]
-    pub fn write_goto(label: &str) {
+    pub fn write_goto(_label: &str) {
         todo!()
     }
 
     #[allow(dead_code)]
-    pub fn write_if(label: &str) {
+    pub fn write_if(_label: &str) {
         todo!()
     }
 
