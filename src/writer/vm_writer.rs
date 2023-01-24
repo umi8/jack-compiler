@@ -36,8 +36,9 @@ impl VmWriter {
         todo!()
     }
 
-    pub fn write_function(name: &str, n_locals: usize) {
-        todo!()
+    pub fn write_function(name: &str, n_locals: usize, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "function {} {}", name, n_locals)?;
+        Ok(())
     }
 
     pub fn write_return(written: &mut impl Write) -> Result<()> {
@@ -49,6 +50,17 @@ impl VmWriter {
 #[cfg(test)]
 mod tests {
     use crate::writer::vm_writer::VmWriter;
+
+    #[test]
+    fn can_write_function() {
+        let expected = "\
+        function Main.main 2
+";
+        let mut output = Vec::<u8>::new();
+        VmWriter::write_function("Main.main", 2, &mut output).unwrap();
+        let actual = String::from_utf8(output).unwrap();
+        assert_eq!(expected, actual)
+    }
 
     #[test]
     fn can_write_return() {
