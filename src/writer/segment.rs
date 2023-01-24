@@ -3,8 +3,8 @@ use std::fmt::{Display, Formatter};
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum Segment {
-    Const,
-    Arg,
+    Constant,
+    Argument,
     Local,
     Static,
     This,
