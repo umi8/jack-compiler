@@ -16,8 +16,9 @@ impl VmWriter {
         todo!()
     }
 
-    pub fn write_arithmetic(command: &Command) {
-        todo!()
+    pub fn write_arithmetic(command: &Command, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "{}", command)?;
+        Ok(())
     }
 
     pub fn write_label(label: &str) {
@@ -49,7 +50,19 @@ impl VmWriter {
 
 #[cfg(test)]
 mod tests {
+    use crate::writer::command::Command;
     use crate::writer::vm_writer::VmWriter;
+
+    #[test]
+    fn can_write_arithmetic() {
+        let expected = "\
+        add
+";
+        let mut output = Vec::<u8>::new();
+        VmWriter::write_arithmetic(&Command::Add, &mut output).unwrap();
+        let actual = String::from_utf8(output).unwrap();
+        assert_eq!(expected, actual)
+    }
 
     #[test]
     fn can_write_function() {
