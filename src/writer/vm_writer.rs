@@ -9,8 +9,9 @@ pub struct VmWriter {}
 
 impl VmWriter {
     #[allow(dead_code)]
-    pub fn write_push(segment: &Segment, index: usize) {
-        todo!()
+    pub fn write_push(segment: &Segment, index: usize, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "push {} {}", segment, index)?;
+        Ok(())
     }
 
     #[allow(dead_code)]
@@ -61,7 +62,19 @@ impl VmWriter {
 #[cfg(test)]
 mod tests {
     use crate::writer::command::Command;
+    use crate::writer::segment::Segment;
     use crate::writer::vm_writer::VmWriter;
+
+    #[test]
+    fn can_write_push() {
+        let expected = "\
+        push argument 0
+";
+        let mut output = Vec::<u8>::new();
+        VmWriter::write_push(&Segment::Argument, 0, &mut output).unwrap();
+        let actual = String::from_utf8(output).unwrap();
+        assert_eq!(expected, actual)
+    }
 
     #[test]
     fn can_write_arithmetic() {
