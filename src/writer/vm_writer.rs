@@ -15,8 +15,9 @@ impl VmWriter {
     }
 
     #[allow(dead_code)]
-    pub fn write_pop(segment: &Segment, index: usize) {
-        todo!()
+    pub fn write_pop(segment: &Segment, index: usize, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "pop {} {}", segment, index)?;
+        Ok(())
     }
 
     #[allow(dead_code)]
@@ -72,6 +73,17 @@ mod tests {
 ";
         let mut output = Vec::<u8>::new();
         VmWriter::write_push(&Segment::Argument, 0, &mut output).unwrap();
+        let actual = String::from_utf8(output).unwrap();
+        assert_eq!(expected, actual)
+    }
+
+    #[test]
+    fn can_write_pop() {
+        let expected = "\
+        pop this 1
+";
+        let mut output = Vec::<u8>::new();
+        VmWriter::write_pop(&Segment::This, 1, &mut output).unwrap();
         let actual = String::from_utf8(output).unwrap();
         assert_eq!(expected, actual)
     }
