@@ -25,7 +25,7 @@ impl JackTokenizer {
         })
     }
 
-    pub fn has_more_tokens(&mut self) -> Result<bool> {
+    pub fn has_more_tokens(&self) -> Result<bool> {
         Ok(!self.tokens.is_empty())
     }
 
@@ -38,7 +38,7 @@ impl JackTokenizer {
         Ok(())
     }
 
-    pub fn peek(&mut self) -> Result<&Token> {
+    pub fn peek(&self) -> Result<&Token> {
         if self.has_more_tokens()? {
             self.tokens.get(0).context("get failed.")
         } else {
@@ -46,7 +46,7 @@ impl JackTokenizer {
         }
     }
 
-    pub fn peek_second(&mut self) -> Result<&Token> {
+    pub fn peek_second(&self) -> Result<&Token> {
         if self.tokens.len() >= 2 {
             self.tokens.get(1).context("get failed.")
         } else {
@@ -54,7 +54,7 @@ impl JackTokenizer {
         }
     }
 
-    pub fn token_type(&mut self) -> Result<&TokenType> {
+    pub fn token_type(&self) -> Result<&TokenType> {
         Ok(self.current_token.token_type())
     }
 
@@ -78,7 +78,7 @@ impl JackTokenizer {
         self.current_token.value()
     }
 
-    pub fn is_term(&mut self) -> Result<bool> {
+    pub fn is_term(&self) -> Result<bool> {
         match self.peek()?.token_type() {
             TokenType::Keyword => Ok(self.peek()?.is_keyword_constant()?),
             TokenType::Symbol => match self.peek()?.value().as_str() {
