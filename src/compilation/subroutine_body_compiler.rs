@@ -28,7 +28,7 @@ impl SubroutineBodyCompiler {
                 break;
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Var => VarDecCompiler::compile(tokenizer, writer, symbol_tables, written)?,
+                KeyWord::Var => VarDecCompiler::compile(tokenizer, symbol_tables)?,
                 _ => break,
             }
         }
