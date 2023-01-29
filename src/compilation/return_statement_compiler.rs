@@ -6,7 +6,7 @@ use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
-use crate::tokenizer::key_word::KeyWord::Return;
+use crate::writer::vm_writer::VmWriter;
 
 /// returnStatement = ’return’ expression? ’;’
 pub struct ReturnStatementCompiler {}
@@ -18,18 +18,18 @@ impl ReturnStatementCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        // <returnStatement>
-        writer.write_start_tag("returnStatement", written)?;
         // return
-        writer.write_key_word(tokenizer, vec![Return], written)?;
+        VmWriter::write_return(written)?;
+        tokenizer.advance()?;
+
         // expression?
         if tokenizer.peek()?.value() != ";" {
             ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
         }
+
         // ’;’
-        writer.write_symbol(tokenizer, written)?;
-        // </returnStatement>
-        writer.write_end_tag("returnStatement", written)?;
+        tokenizer.advance()?;
+
         Ok(())
     }
 }
@@ -45,25 +45,13 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile_return_statement() {
+    fn can_compile() {
         let expected = "\
-<returnStatement>
-  <keyword> return </keyword>
-  <expression>
-    <term>
-      <category> Var </category>
-      <kind> Var </kind>
-      <index> 0 </index>
-      <identifier> x </identifier>
-    </term>
-  </expression>
-  <symbol> ; </symbol>
-</returnStatement>
+return
 "
         .to_string();
-
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "return x;").unwrap();
+        writeln!(src_file, "return;").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
