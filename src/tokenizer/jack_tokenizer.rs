@@ -218,11 +218,11 @@ mod tests {
             Token::new(TokenType::Identifier, String::from("x")),
         ]);
 
-        let mut tokenizer = JackTokenizer {
+        let tokenizer = JackTokenizer {
             tokens,
             current_token: Default::default(),
         };
 
-        assert_eq!(true, tokenizer.is_term().unwrap())
+        assert!(tokenizer.is_term().unwrap())
     }
 }
