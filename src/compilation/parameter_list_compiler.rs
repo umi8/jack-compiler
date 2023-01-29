@@ -1,8 +1,5 @@
-use std::io::Write;
-
 use anyhow::Result;
 
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -10,12 +7,7 @@ use crate::tokenizer::jack_tokenizer::JackTokenizer;
 pub struct ParameterListCompiler {}
 
 impl ParameterListCompiler {
-    pub fn compile(
-        tokenizer: &mut JackTokenizer,
-        _writer: &mut XmlWriter,
-        symbol_tables: &mut SymbolTables,
-        _written: &mut impl Write,
-    ) -> Result<()> {
+    pub fn compile(tokenizer: &mut JackTokenizer, symbol_tables: &mut SymbolTables) -> Result<()> {
         // ((type varName) (’,’ type varName)*)?
         if tokenizer.peek()?.is_type()? {
             // type
@@ -51,7 +43,6 @@ mod tests {
     use std::io::{Seek, SeekFrom, Write};
 
     use crate::compilation::parameter_list_compiler::ParameterListCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -62,18 +53,11 @@ mod tests {
         writeln!(src_file, "int count, boolean isTest, char c)").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
-        let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result = ParameterListCompiler::compile(
-            &mut tokenizer,
-            &mut writer,
-            &mut symbol_tables,
-            &mut output,
-        );
+        let result = ParameterListCompiler::compile(&mut tokenizer, &mut symbol_tables);
 
         assert!(result.is_ok());
         assert_eq!(3, symbol_tables.var_count(Kind::Argument));
