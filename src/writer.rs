@@ -1,3 +1,3 @@
 mod command;
 mod segment;
-mod vm_writer;
+pub mod vm_writer;
