@@ -2,7 +2,6 @@ use std::io::Write;
 
 use anyhow::Result;
 
-use crate::compilation::type_compiler::TypeCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
@@ -13,42 +12,70 @@ pub struct ParameterListCompiler {}
 impl ParameterListCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
+        _writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
-        written: &mut impl Write,
+        _written: &mut impl Write,
     ) -> Result<()> {
-        // <parameterList>
-        writer.write_start_tag("parameterList", written)?;
-
         // ((type varName) (’,’ type varName)*)?
         if tokenizer.peek()?.is_type()? {
             // type
             let type_name = String::from(tokenizer.peek()?.value());
-            TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+            tokenizer.advance()?;
 
             // varName
             let var_name = String::from(tokenizer.peek()?.value());
             symbol_tables.define(&var_name, &type_name, &Kind::Argument);
-            writer.write_identifier(tokenizer, symbol_tables, written)?;
+            tokenizer.advance()?;
 
             // (’,’ type varName)*
             while tokenizer.peek()?.value() == "," {
                 // ’,’
-                writer.write_symbol(tokenizer, written)?;
+                tokenizer.advance()?;
 
                 // type
                 let type_name = String::from(tokenizer.peek()?.value());
-                TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                tokenizer.advance()?;
 
                 // varName
                 let var_name = String::from(tokenizer.peek()?.value());
                 symbol_tables.define(&var_name, &type_name, &Kind::Argument);
-                writer.write_identifier(tokenizer, symbol_tables, written)?;
+                tokenizer.advance()?;
             }
         }
-
-        // </parameterList>
-        writer.write_end_tag("parameterList", written)?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::{Seek, SeekFrom, Write};
+
+    use crate::compilation::parameter_list_compiler::ParameterListCompiler;
+    use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
+    use crate::symbol_table::symbol_tables::SymbolTables;
+    use crate::tokenizer::jack_tokenizer::JackTokenizer;
+
+    #[test]
+    fn can_compile() {
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "int count, boolean isTest, char c)").unwrap();
+        src_file.seek(SeekFrom::Start(0)).unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+
+        let result = ParameterListCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
+
+        assert!(result.is_ok());
+        assert_eq!(3, symbol_tables.var_count(Kind::Argument));
     }
 }
