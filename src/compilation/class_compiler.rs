@@ -36,7 +36,7 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Static | KeyWord::Field => {
-                    ClassVarDecCompiler::compile(tokenizer, writer, symbol_tables, written)?
+                    ClassVarDecCompiler::compile(tokenizer, symbol_tables)?
                 }
                 _ => break,
             }
