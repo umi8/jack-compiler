@@ -14,7 +14,6 @@ mod subroutine_body_compiler;
 mod subroutine_call_compiler;
 mod subroutine_dec_compiler;
 mod term_compiler;
-mod type_compiler;
 mod var_dec_compiler;
 mod while_statement_compiler;
 mod xml_writer;
