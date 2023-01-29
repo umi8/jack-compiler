@@ -55,7 +55,6 @@ mod tests {
         writeln!(src_file, "static boolean isTest, isSomething;").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
-        let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
