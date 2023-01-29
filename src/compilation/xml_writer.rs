@@ -143,24 +143,6 @@ impl XmlWriter {
         Ok(())
     }
 
-    pub fn write_integer_constant(
-        &mut self,
-        tokenizer: &mut JackTokenizer,
-        written: &mut impl Write,
-    ) -> Result<()> {
-        tokenizer.advance()?;
-        match tokenizer.token_type()? {
-            TokenType::IntConst => writeln!(
-                written,
-                "{}<integerConstant> {} </integerConstant>",
-                self.indent,
-                tokenizer.int_val()?
-            )?,
-            _ => bail!(Error::msg("Illegal token")),
-        }
-        Ok(())
-    }
-
     pub fn write_start_tag(&mut self, element: &str, written: &mut impl Write) -> Result<()> {
         writeln!(written, "{}<{}>", self.indent, element)?;
         self.increase_indent();
