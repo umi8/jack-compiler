@@ -2,12 +2,10 @@ use std::io::Write;
 
 use anyhow::Result;
 
-use crate::compilation::type_compiler::TypeCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
-use crate::tokenizer::key_word::KeyWord::Var;
 use crate::tokenizer::token_type::TokenType::Symbol;
 
 /// varDec = ’var’ type varName (’,’ varName)* ’;’
@@ -16,45 +14,39 @@ pub struct VarDecCompiler {}
 impl VarDecCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
+        _writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
-        written: &mut impl Write,
+        _written: &mut impl Write,
     ) -> Result<()> {
-        // <varDec>
-        writer.write_start_tag("varDec", written)?;
-
         // ’var’
-        writer.write_key_word(tokenizer, vec![Var], written)?;
+        tokenizer.advance()?;
 
         // type
         let type_name = String::from(tokenizer.peek()?.value());
-        TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        tokenizer.advance()?;
 
         // varName
         let var_name = String::from(tokenizer.peek()?.value());
         symbol_tables.define(&var_name, &type_name, &Kind::Var);
-        writer.write_identifier(tokenizer, symbol_tables, written)?;
+        tokenizer.advance()?;
 
         // (’,’ varName)*
         loop {
             if tokenizer.peek()?.token_type() == &Symbol && tokenizer.peek()?.value() == "," {
                 // ','
-                writer.write_symbol(tokenizer, written)?;
+                tokenizer.advance()?;
 
                 // varName
                 let var_name = String::from(tokenizer.peek()?.value());
                 symbol_tables.define(&var_name, &type_name, &Kind::Var);
-                writer.write_identifier(tokenizer, symbol_tables, written)?;
+                tokenizer.advance()?;
             } else {
                 break;
             }
         }
 
         // ’;’
-        writer.write_symbol(tokenizer, written)?;
-
-        // </varDec>
-        writer.write_end_tag("varDec", written)?;
+        tokenizer.advance()?;
 
         Ok(())
     }
@@ -66,34 +58,12 @@ mod tests {
 
     use crate::compilation::var_dec_compiler::VarDecCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
     fn can_compile() {
-        let expected = "\
-<varDec>
-  <keyword> var </keyword>
-  <keyword> int </keyword>
-  <category> Var </category>
-  <kind> Var </kind>
-  <index> 0 </index>
-  <identifier> i </identifier>
-  <symbol> , </symbol>
-  <category> Var </category>
-  <kind> Var </kind>
-  <index> 1 </index>
-  <identifier> j </identifier>
-  <symbol> , </symbol>
-  <category> Var </category>
-  <kind> Var </kind>
-  <index> 2 </index>
-  <identifier> sum </identifier>
-  <symbol> ; </symbol>
-</varDec>
-"
-        .to_string();
-
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "var int i, j, sum;").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
@@ -106,9 +76,8 @@ mod tests {
 
         let result =
             VarDecCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
-        let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
-        assert_eq!(expected, actual);
+        assert_eq!(3, symbol_tables.var_count(Kind::Var));
     }
 }
