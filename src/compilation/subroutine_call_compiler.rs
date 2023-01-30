@@ -39,9 +39,10 @@ impl SubroutineCallCompiler {
         tokenizer.advance()?;
 
         // expressionList
-        ExpressionListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        let number_of_args =
+            ExpressionListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
-        VmWriter::write_call(subroutine_name.as_str(), 0, written)?;
+        VmWriter::write_call(subroutine_name.as_str(), number_of_args, written)?;
 
         // ’)’
         tokenizer.advance()?;
@@ -62,12 +63,13 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-call Output.printInt 0
+push constant 100
+call Output.printInt 1
 "
         .to_string();
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "Output.printInt(1 + (2 * 3))").unwrap();
+        writeln!(src_file, "Output.printInt(100)").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
