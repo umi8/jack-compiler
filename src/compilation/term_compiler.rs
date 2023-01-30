@@ -9,6 +9,7 @@ use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::{False, Null, This, True};
 use crate::tokenizer::token_type::TokenType;
+use crate::writer::command::Command;
 use crate::writer::segment::Segment;
 use crate::writer::vm_writer::VmWriter;
 
@@ -37,7 +38,16 @@ impl TermCompiler {
                     // ')'
                     tokenizer.advance()?;
                 }
-                "-" | "~" => {
+                "-" => {
+                    // unaryOp
+                    tokenizer.advance()?;
+
+                    // term
+                    TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
+                    VmWriter::write_arithmetic(&Command::Neg, written)?;
+                }
+                "~" => {
                     // unaryOp
                     writer.write_symbol(tokenizer, written)?;
                     // term
@@ -101,5 +111,29 @@ mod tests {
 
         assert!(result.is_ok());
         assert_eq!("push constant 1\n", actual);
+    }
+
+    #[test]
+    fn can_compile_neg() {
+        let expected = "\
+push constant 1
+neg
+";
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "-1").unwrap();
+        src_file.seek(SeekFrom::Start(0)).unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+
+        let result =
+            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
     }
 }
