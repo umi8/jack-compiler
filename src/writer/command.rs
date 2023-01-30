@@ -14,6 +14,15 @@ pub enum Command {
     Not,
 }
 
+impl Command {
+    pub fn from(value: char) -> Option<Self> {
+        match value {
+            '+' => Some(Command::Add),
+            _ => None,
+        }
+    }
+}
+
 impl Display for Command {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", format!("{:?}", self).to_lowercase())
