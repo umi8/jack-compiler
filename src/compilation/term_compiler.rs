@@ -31,11 +31,11 @@ impl TermCompiler {
             TokenType::Symbol => match tokenizer.peek()?.value().as_str() {
                 "(" => {
                     // '('
-                    writer.write_symbol(tokenizer, written)?;
+                    tokenizer.advance()?;
                     // expression
                     ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
                     // ')'
-                    writer.write_symbol(tokenizer, written)?;
+                    tokenizer.advance()?;
                 }
                 "-" | "~" => {
                     // unaryOp
