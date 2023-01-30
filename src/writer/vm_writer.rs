@@ -13,7 +13,6 @@ impl VmWriter {
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn write_pop(segment: &Segment, index: usize, written: &mut impl Write) -> Result<()> {
         writeln!(written, "pop {} {}", segment, index)?;
         Ok(())
