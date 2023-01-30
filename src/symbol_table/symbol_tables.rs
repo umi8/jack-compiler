@@ -35,7 +35,6 @@ impl SymbolTables {
         }
     }
 
-    #[allow(dead_code)]
     pub fn var_count(&mut self, kind: Kind) -> usize {
         match kind {
             Kind::Static | Kind::Field => {
@@ -49,7 +48,6 @@ impl SymbolTables {
         }
     }
 
-    #[allow(dead_code)]
     pub fn kind_of(&mut self, name: &str) -> Option<&Kind> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(&s.kind),
@@ -71,7 +69,6 @@ impl SymbolTables {
         }
     }
 
-    #[allow(dead_code)]
     pub fn index_of(&mut self, name: &str) -> Option<usize> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(s.index),
