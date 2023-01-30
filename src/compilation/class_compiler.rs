@@ -23,8 +23,8 @@ impl ClassCompiler {
         tokenizer.advance()?;
 
         // className
-        let class_name = String::from(tokenizer.identifier());
         tokenizer.advance()?;
+        let class_name = String::from(tokenizer.identifier());
 
         // {
         tokenizer.advance()?;
