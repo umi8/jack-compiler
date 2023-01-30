@@ -17,22 +17,21 @@ impl ExpressionListCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        // <expressionList>
-        writer.write_start_tag("expressionList", written)?;
         // (expression)?
         if tokenizer.is_term()? {
             // expression
             ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
             // (’,’ expression)*
             while tokenizer.peek()?.value() == "," {
                 // ’,’
-                writer.write_symbol(tokenizer, written)?;
+                tokenizer.advance()?;
+
                 // expression
                 ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
             }
         }
-        // </expressionList>
-        writer.write_end_tag("expressionList", written)?;
+
         Ok(())
     }
 }
