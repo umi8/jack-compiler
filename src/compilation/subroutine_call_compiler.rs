@@ -6,6 +6,7 @@ use crate::compilation::expression_list_compiler::ExpressionListCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
+use crate::writer::vm_writer::VmWriter;
 
 /// subroutineCall = subroutineName ’(’ expressionList ’)’ | (className | varName) ’.’ subroutineName ’(’ expressionList ’)’
 pub struct SubroutineCallCompiler {}
@@ -18,19 +19,34 @@ impl SubroutineCallCompiler {
         written: &mut impl Write,
     ) -> Result<()> {
         // subroutineName | (className | varName)
-        writer.write_identifier(tokenizer, symbol_tables, written)?;
-        if tokenizer.peek()?.value() == "." {
+        tokenizer.advance()?;
+        let subroutine_name = if tokenizer.peek()?.value() == "." {
+            let class_name = String::from(tokenizer.identifier());
+
             // ’.’
-            writer.write_symbol(tokenizer, written)?;
+            tokenizer.advance()?;
+
             // subroutineName
-            writer.write_identifier(tokenizer, symbol_tables, written)?;
-        }
+            tokenizer.advance()?;
+            let subroutine_name = String::from(tokenizer.identifier());
+
+            format!("{}.{}", class_name, subroutine_name)
+        } else {
+            String::from(tokenizer.identifier())
+        };
+
         // ’(’
-        writer.write_symbol(tokenizer, written)?;
+        tokenizer.advance()?;
+
         // expressionList
-        ExpressionListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        let number_of_args =
+            ExpressionListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
+        VmWriter::write_call(subroutine_name.as_str(), number_of_args, written)?;
+
         // ’)’
-        writer.write_symbol(tokenizer, written)?;
+        tokenizer.advance()?;
+
         Ok(())
     }
 }
@@ -47,25 +63,13 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-<category> Class </category>
-<identifier> Keyboard </identifier>
-<symbol> . </symbol>
-<category> Subroutine </category>
-<identifier> readInt </identifier>
-<symbol> ( </symbol>
-<expressionList>
-  <expression>
-    <term>
-      <stringConstant> HOW MANY NUMBERS?  </stringConstant>
-    </term>
-  </expression>
-</expressionList>
-<symbol> ) </symbol>
+push constant 100
+call Output.printInt 1
 "
         .to_string();
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "Keyboard.readInt(\"HOW MANY NUMBERS? \")").unwrap();
+        writeln!(src_file, "Output.printInt(100)").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();

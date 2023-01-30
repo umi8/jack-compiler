@@ -8,7 +8,6 @@ use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
-use crate::tokenizer::key_word::KeyWord::Class;
 
 /// class = ’class’ className ’{’ classVarDec* subroutineDec* ’}’
 pub struct ClassCompiler {}
@@ -20,15 +19,16 @@ impl ClassCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        // <class>
-        writer.write_start_tag("class", written)?;
         // ’class’
-        let class_name = String::from(tokenizer.peek()?.value());
-        writer.write_key_word(tokenizer, vec![Class], written)?;
+        tokenizer.advance()?;
+
         // className
-        writer.write_identifier(tokenizer, symbol_tables, written)?;
+        tokenizer.advance()?;
+        let class_name = String::from(tokenizer.identifier());
+
         // {
-        writer.write_symbol(tokenizer, written)?;
+        tokenizer.advance()?;
+
         // classVarDec*
         loop {
             if !KeyWord::exists(tokenizer.peek()?.value()) {
@@ -36,11 +36,12 @@ impl ClassCompiler {
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Static | KeyWord::Field => {
-                    ClassVarDecCompiler::compile(tokenizer, writer, symbol_tables, written)?
+                    ClassVarDecCompiler::compile(tokenizer, symbol_tables)?
                 }
                 _ => break,
             }
         }
+
         // subroutineDec*
         loop {
             if !KeyWord::exists(tokenizer.peek()?.value()) {
@@ -59,178 +60,10 @@ impl ClassCompiler {
                 _ => break,
             }
         }
+
         // }
-        writer.write_symbol(tokenizer, written)?;
-        // </class>
-        writer.write_end_tag("class", written)?;
+        tokenizer.advance()?;
+
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::io::{Seek, SeekFrom, Write};
-
-    use crate::compilation::class_compiler::ClassCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
-    use crate::symbol_table::symbol_tables::SymbolTables;
-    use crate::tokenizer::jack_tokenizer::JackTokenizer;
-
-    #[test]
-    fn can_compile_class() {
-        let expected = "\
-<class>
-  <keyword> class </keyword>
-  <category> Class </category>
-  <identifier> Main </identifier>
-  <symbol> { </symbol>
-  <symbol> } </symbol>
-</class>
-"
-        .to_string();
-
-        let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "class Main {{").unwrap();
-        writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
-        let path = src_file.path();
-        let mut output = Vec::<u8>::new();
-
-        let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
-        let mut symbol_tables = SymbolTables::new();
-
-        let result =
-            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
-        let actual = String::from_utf8(output).unwrap();
-
-        assert!(result.is_ok());
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn can_compile_class_with_classvardec() {
-        let expected = "\
-<class>
-  <keyword> class </keyword>
-  <category> Class </category>
-  <identifier> Main </identifier>
-  <symbol> { </symbol>
-  <classVarDec>
-    <keyword> static </keyword>
-    <keyword> boolean </keyword>
-    <category> Static </category>
-    <kind> Static </kind>
-    <index> 0 </index>
-    <identifier> test </identifier>
-    <symbol> ; </symbol>
-  </classVarDec>
-  <classVarDec>
-    <keyword> static </keyword>
-    <keyword> boolean </keyword>
-    <category> Static </category>
-    <kind> Static </kind>
-    <index> 1 </index>
-    <identifier> test </identifier>
-    <symbol> ; </symbol>
-  </classVarDec>
-  <symbol> } </symbol>
-</class>
-"
-        .to_string();
-
-        let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "class Main {{").unwrap();
-        writeln!(src_file, "static boolean test;").unwrap();
-        writeln!(src_file, "static boolean test;").unwrap();
-        writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
-        let path = src_file.path();
-        let mut output = Vec::<u8>::new();
-
-        let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
-        let mut symbol_tables = SymbolTables::new();
-
-        let result =
-            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
-        let actual = String::from_utf8(output).unwrap();
-
-        assert!(result.is_ok());
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn can_compile_class_with_subroutinedec() {
-        let expected = "\
-<class>
-  <keyword> class </keyword>
-  <category> Class </category>
-  <identifier> Main </identifier>
-  <symbol> { </symbol>
-  <subroutineDec>
-    <keyword> function </keyword>
-    <keyword> void </keyword>
-    <category> Subroutine </category>
-    <identifier> main </identifier>
-    <symbol> ( </symbol>
-    <parameterList>
-    </parameterList>
-    <symbol> ) </symbol>
-    <subroutineBody>
-      <symbol> { </symbol>
-      <statements>
-        <returnStatement>
-          <keyword> return </keyword>
-          <symbol> ; </symbol>
-        </returnStatement>
-      </statements>
-      <symbol> } </symbol>
-    </subroutineBody>
-  </subroutineDec>
-  <subroutineDec>
-    <keyword> function </keyword>
-    <keyword> boolean </keyword>
-    <category> Subroutine </category>
-    <identifier> isSomething </identifier>
-    <symbol> ( </symbol>
-    <parameterList>
-    </parameterList>
-    <symbol> ) </symbol>
-    <subroutineBody>
-      <symbol> { </symbol>
-      <statements>
-        <returnStatement>
-          <keyword> return </keyword>
-          <symbol> ; </symbol>
-        </returnStatement>
-      </statements>
-      <symbol> } </symbol>
-    </subroutineBody>
-  </subroutineDec>
-  <symbol> } </symbol>
-</class>
-"
-        .to_string();
-
-        let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "class Main {{").unwrap();
-        writeln!(src_file, "function void main() {{ return; }}").unwrap();
-        writeln!(src_file, "function boolean isSomething() {{ return; }}").unwrap();
-        writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
-        let path = src_file.path();
-        let mut output = Vec::<u8>::new();
-
-        let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
-        let mut symbol_tables = SymbolTables::new();
-
-        let result =
-            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
-        let actual = String::from_utf8(output).unwrap();
-
-        assert!(result.is_ok());
-        assert_eq!(expected, actual);
     }
 }

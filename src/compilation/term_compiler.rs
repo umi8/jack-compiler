@@ -9,6 +9,8 @@ use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord::{False, Null, This, True};
 use crate::tokenizer::token_type::TokenType;
+use crate::writer::segment::Segment;
+use crate::writer::vm_writer::VmWriter;
 
 /// term = integerConstant | stringConstant | keywordConstant | varName | varName ’[’ expression ’]’ | subroutineCall | ’(’ expression ’)’ | unaryOp term
 pub struct TermCompiler {}
@@ -20,9 +22,6 @@ impl TermCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        // <term>
-        writer.write_start_tag("term", written)?;
-
         match tokenizer.peek()?.token_type() {
             TokenType::Keyword => {
                 if tokenizer.peek()?.is_keyword_constant()? {
@@ -32,11 +31,11 @@ impl TermCompiler {
             TokenType::Symbol => match tokenizer.peek()?.value().as_str() {
                 "(" => {
                     // '('
-                    writer.write_symbol(tokenizer, written)?;
+                    tokenizer.advance()?;
                     // expression
                     ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
                     // ')'
-                    writer.write_symbol(tokenizer, written)?;
+                    tokenizer.advance()?;
                 }
                 "-" | "~" => {
                     // unaryOp
@@ -64,12 +63,13 @@ impl TermCompiler {
                     _ => writer.write_identifier(tokenizer, symbol_tables, written)?,
                 }
             }
-            TokenType::IntConst => writer.write_integer_constant(tokenizer, written)?,
+            TokenType::IntConst => {
+                tokenizer.advance()?;
+                VmWriter::write_push(&Segment::Constant, tokenizer.int_val()?, written)?;
+            }
             TokenType::StringConst => writer.write_string_constant(tokenizer, written)?,
         }
 
-        // </term>
-        writer.write_end_tag("term", written)?;
         Ok(())
     }
 }
@@ -84,29 +84,9 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile() {
-        let expected = "\
-<term>
-  <category> Class </category>
-  <identifier> Keyboard </identifier>
-  <symbol> . </symbol>
-  <category> Subroutine </category>
-  <identifier> readInt </identifier>
-  <symbol> ( </symbol>
-  <expressionList>
-    <expression>
-      <term>
-        <stringConstant> HOW MANY NUMBERS?  </stringConstant>
-      </term>
-    </expression>
-  </expressionList>
-  <symbol> ) </symbol>
-</term>
-"
-        .to_string();
-
+    fn can_compile_int_const() {
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "Keyboard.readInt(\"HOW MANY NUMBERS? \")").unwrap();
+        writeln!(src_file, "1").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
@@ -120,6 +100,6 @@ mod tests {
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
-        assert_eq!(expected, actual);
+        assert_eq!("push constant 1\n", actual);
     }
 }

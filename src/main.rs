@@ -61,10 +61,10 @@ fn is_jack_file(entry: &DirEntry) -> bool {
 
 fn create_output_file_name(path: &Path) -> String {
     if path.is_file() && path.extension().unwrap() == "jack" {
-        return String::from(path.with_extension("xml").to_string_lossy());
+        return String::from(path.with_extension("vm").to_string_lossy());
     }
 
     let dir = path.to_string_lossy();
     let file_name = path.file_name().unwrap().to_string_lossy();
-    format!("{}/{}.xml", dir, file_name)
+    format!("{}/{}.vm", dir, file_name)
 }

@@ -1,8 +1,8 @@
 use std::io::Write;
 
-use crate::compilation::expression_compiler::ExpressionCompiler;
 use anyhow::Result;
 
+use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -16,23 +16,26 @@ impl ExpressionListCompiler {
         writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
-    ) -> Result<()> {
-        // <expressionList>
-        writer.write_start_tag("expressionList", written)?;
+    ) -> Result<usize> {
+        let mut expression_count = 0;
+
         // (expression)?
         if tokenizer.is_term()? {
             // expression
             ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+            expression_count += 1;
+
             // (’,’ expression)*
             while tokenizer.peek()?.value() == "," {
                 // ’,’
-                writer.write_symbol(tokenizer, written)?;
+                tokenizer.advance()?;
+
                 // expression
                 ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                expression_count += 1;
             }
         }
-        // </expressionList>
-        writer.write_end_tag("expressionList", written)?;
-        Ok(())
+
+        Ok(expression_count)
     }
 }

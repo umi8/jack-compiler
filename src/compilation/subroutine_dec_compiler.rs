@@ -4,14 +4,11 @@ use anyhow::Result;
 
 use crate::compilation::parameter_list_compiler::ParameterListCompiler;
 use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
-use crate::compilation::type_compiler::TypeCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
-use crate::tokenizer::key_word::KeyWord;
-use crate::tokenizer::key_word::KeyWord::{Constructor, Function, Method, Void};
-use crate::tokenizer::token_type::TokenType::Keyword;
+use crate::writer::vm_writer::VmWriter;
 
 /// subroutineDec =(’constructor’ | ’function’ | ’method’) (’void’ | type) subroutineName ’(’ parameterList ’)’ subroutineBody
 pub struct SubroutineDecCompiler {}
@@ -27,38 +24,32 @@ impl SubroutineDecCompiler {
         symbol_tables.start_subroutine();
         symbol_tables.define("this", class_name, &Kind::Argument);
 
-        // <subroutineDec>
-        writer.write_start_tag("subroutineDec", written)?;
-
-        // ’constructor’ | ’function’ | ’method’
-        writer.write_key_word(tokenizer, vec![Constructor, Function, Method], written)?;
-
-        // ’void’ | type
-        if tokenizer.peek()?.token_type() == &Keyword
-            && KeyWord::from(tokenizer.peek()?.value())? == Void
-        {
-            writer.write_key_word(tokenizer, vec![Void], written)?
-        } else {
-            TypeCompiler::compile(tokenizer, writer, symbol_tables, written)?
-        }
-
-        // subroutineName
-        writer.write_identifier(tokenizer, symbol_tables, written)?;
+        let subroutine_name = {
+            // ’constructor’ | ’function’ | ’method’
+            tokenizer.advance()?;
+            // ’void’ | type
+            tokenizer.advance()?;
+            // subroutineName
+            tokenizer.advance()?;
+            String::from(tokenizer.identifier())
+        };
 
         // ’(’
-        writer.write_symbol(tokenizer, written)?;
-
+        tokenizer.advance()?;
         // parameterList
-        ParameterListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        ParameterListCompiler::compile(tokenizer, symbol_tables)?;
+
+        VmWriter::write_function(
+            format!("{}.{}", class_name, subroutine_name).as_str(),
+            symbol_tables.var_count(Kind::Argument) - 1,
+            written,
+        )?;
 
         // ’)’
-        writer.write_symbol(tokenizer, written)?;
+        tokenizer.advance()?;
 
         // subroutineBody
         SubroutineBodyCompiler::compile(tokenizer, writer, symbol_tables, written)?;
-
-        // </subroutineDec>
-        writer.write_end_tag("subroutineDec", written)?;
 
         Ok(())
     }
@@ -76,32 +67,12 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-<subroutineDec>
-  <keyword> function </keyword>
-  <keyword> void </keyword>
-  <category> Subroutine </category>
-  <identifier> main </identifier>
-  <symbol> ( </symbol>
-  <parameterList>
-  </parameterList>
-  <symbol> ) </symbol>
-  <subroutineBody>
-    <symbol> { </symbol>
-    <statements>
-      <returnStatement>
-        <keyword> return </keyword>
-        <symbol> ; </symbol>
-      </returnStatement>
-    </statements>
-    <symbol> } </symbol>
-  </subroutineBody>
-</subroutineDec>
+function Test.main 0
 "
         .to_string();
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "function void main() {{").unwrap();
-        writeln!(src_file, "return;").unwrap();
         writeln!(src_file, "}}").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();

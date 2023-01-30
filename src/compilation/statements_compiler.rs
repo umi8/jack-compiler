@@ -18,8 +18,6 @@ impl StatementsCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        // <statements>
-        writer.write_start_tag("statements", written)?;
         loop {
             if !KeyWord::exists(tokenizer.peek()?.value()) {
                 break;
@@ -31,8 +29,6 @@ impl StatementsCompiler {
                 _ => break,
             }
         }
-        // </statements>
-        writer.write_end_tag("statements", written)?;
         Ok(())
     }
 }

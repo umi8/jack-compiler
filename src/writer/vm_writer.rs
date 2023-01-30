@@ -8,7 +8,6 @@ use crate::writer::segment::Segment;
 pub struct VmWriter {}
 
 impl VmWriter {
-    #[allow(dead_code)]
     pub fn write_push(segment: &Segment, index: usize, written: &mut impl Write) -> Result<()> {
         writeln!(written, "push {} {}", segment, index)?;
         Ok(())
@@ -20,7 +19,6 @@ impl VmWriter {
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn write_arithmetic(command: &Command, written: &mut impl Write) -> Result<()> {
         writeln!(written, "{}", command)?;
         Ok(())
@@ -41,19 +39,16 @@ impl VmWriter {
         todo!()
     }
 
-    #[allow(dead_code)]
     pub fn write_call(name: &str, n_args: usize, written: &mut impl Write) -> Result<()> {
         writeln!(written, "call {} {}", name, n_args)?;
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn write_function(name: &str, n_locals: usize, written: &mut impl Write) -> Result<()> {
         writeln!(written, "function {} {}", name, n_locals)?;
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn write_return(written: &mut impl Write) -> Result<()> {
         writeln!(written, "return")?;
         Ok(())

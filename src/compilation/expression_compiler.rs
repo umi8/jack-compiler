@@ -6,6 +6,8 @@ use crate::compilation::term_compiler::TermCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
+use crate::writer::command::Command;
+use crate::writer::vm_writer::VmWriter;
 
 /// expression = term (op term)*
 pub struct ExpressionCompiler {}
@@ -17,23 +19,73 @@ impl ExpressionCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        // <expression>
-        writer.write_start_tag("expression", written)?;
         // term
         TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
         // (op term)*
         loop {
             if tokenizer.peek()?.is_op() {
                 // op
-                writer.write_symbol(tokenizer, written)?;
+                tokenizer.advance()?;
+                let op = tokenizer.symbol();
+
                 // term
                 TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
+                if let Some(command) = Command::from(op) {
+                    VmWriter::write_arithmetic(&command, written)?;
+                } else {
+                    VmWriter::write_call("Math.multiply", 2, written)?;
+                }
             } else {
                 break;
             }
         }
-        // </expression>
-        writer.write_end_tag("expression", written)?;
+
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::{Seek, SeekFrom, Write};
+
+    use crate::compilation::expression_compiler::ExpressionCompiler;
+    use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::symbol_tables::SymbolTables;
+    use crate::tokenizer::jack_tokenizer::JackTokenizer;
+
+    #[test]
+    fn can_compile() {
+        let expected = "\
+push constant 1
+push constant 2
+push constant 3
+call Math.multiply 2
+add
+"
+        .to_string();
+
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "1 + (2 * 3)").unwrap();
+        writeln!(src_file, ")").unwrap();
+        src_file.seek(SeekFrom::Start(0)).unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+
+        let result = ExpressionCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
     }
 }
