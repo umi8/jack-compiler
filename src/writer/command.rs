@@ -18,6 +18,7 @@ impl Command {
     pub fn from(value: char) -> Option<Self> {
         match value {
             '+' => Some(Command::Add),
+            '&' => Some(Command::And),
             _ => None,
         }
     }
