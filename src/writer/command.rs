@@ -19,6 +19,7 @@ impl Command {
         match value {
             '+' => Some(Command::Add),
             '&' => Some(Command::And),
+            '=' => Some(Command::Eq),
             _ => None,
         }
     }
