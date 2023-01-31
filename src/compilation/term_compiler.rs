@@ -70,7 +70,17 @@ impl TermCompiler {
                     "." | "(" => {
                         SubroutineCallCompiler::compile(tokenizer, writer, symbol_tables, written)?
                     }
-                    _ => writer.write_identifier(tokenizer, symbol_tables, written)?,
+                    _ => {
+                        // varName
+                        tokenizer.advance()?;
+                        let var_name = String::from(tokenizer.identifier());
+
+                        if let Some(index) = symbol_tables.index_of(&var_name) {
+                            let kind = symbol_tables.kind_of(&var_name).unwrap();
+                            let segment = Segment::from(kind);
+                            VmWriter::write_push(&segment, index, written)?;
+                        }
+                    }
                 }
             }
             TokenType::IntConst => {
@@ -90,8 +100,30 @@ mod tests {
 
     use crate::compilation::term_compiler::TermCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
+
+    #[test]
+    fn can_compile_identifier() {
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "value & mask").unwrap();
+        src_file.seek(SeekFrom::Start(0)).unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("value", "int", &Kind::Argument);
+
+        let result =
+            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!("push argument 0\n", actual);
+    }
 
     #[test]
     fn can_compile_int_const() {
