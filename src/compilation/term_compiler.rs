@@ -41,17 +41,16 @@ impl TermCompiler {
                 "-" => {
                     // unaryOp
                     tokenizer.advance()?;
-
                     // term
                     TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
-
                     VmWriter::write_arithmetic(&Command::Neg, written)?;
                 }
                 "~" => {
                     // unaryOp
-                    writer.write_symbol(tokenizer, written)?;
+                    tokenizer.advance()?;
                     // term
                     TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                    VmWriter::write_arithmetic(&Command::Not, written)?;
                 }
                 _ => {}
             },
