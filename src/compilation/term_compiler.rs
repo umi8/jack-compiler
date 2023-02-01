@@ -7,7 +7,7 @@ use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
-use crate::tokenizer::key_word::KeyWord::{False, Null, This, True};
+use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::token_type::TokenType;
 use crate::writer::command::Command;
 use crate::writer::segment::Segment;
@@ -26,7 +26,17 @@ impl TermCompiler {
         match tokenizer.peek()?.token_type() {
             TokenType::Keyword => {
                 if tokenizer.peek()?.is_keyword_constant()? {
-                    writer.write_key_word(tokenizer, vec![True, False, Null, This], written)?;
+                    tokenizer.advance()?;
+                    match tokenizer.key_word()? {
+                        KeyWord::True => {
+                            VmWriter::write_push(&Segment::Constant, 1, written)?;
+                            VmWriter::write_arithmetic(&Command::Neg, written)?;
+                        }
+                        KeyWord::False | KeyWord::Null => {
+                            VmWriter::write_push(&Segment::Constant, 0, written)?
+                        }
+                        _ => {}
+                    }
                 }
             }
             TokenType::Symbol => match tokenizer.peek()?.value().as_str() {
