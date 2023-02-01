@@ -23,19 +23,19 @@ impl VmWriter {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn write_label(_label: &str) {
-        todo!()
+    pub fn write_label(label: &str, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "Label {}", label)?;
+        Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn write_goto(_label: &str) {
-        todo!()
+    pub fn write_goto(label: &str, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "goto {}", label)?;
+        Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn write_if(_label: &str) {
-        todo!()
+    pub fn write_if(label: &str, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "if-goto {}", label)?;
+        Ok(())
     }
 
     pub fn write_call(name: &str, n_args: usize, written: &mut impl Write) -> Result<()> {
