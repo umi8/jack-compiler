@@ -34,9 +34,13 @@ impl StatementCompiler {
                 written,
                 &RandomLabelCreator::default(),
             )?,
-            KeyWord::While => {
-                WhileStatementCompiler::compile(tokenizer, writer, symbol_tables, written)?
-            }
+            KeyWord::While => WhileStatementCompiler::compile(
+                tokenizer,
+                writer,
+                symbol_tables,
+                written,
+                &RandomLabelCreator::default(),
+            )?,
             KeyWord::Do => DoStatementCompiler::compile(tokenizer, writer, symbol_tables, written)?,
             KeyWord::Return => {
                 ReturnStatementCompiler::compile(tokenizer, writer, symbol_tables, written)?
