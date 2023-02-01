@@ -11,6 +11,7 @@ use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
+use crate::writer::label::RandomLabelCreator;
 
 /// statement = letStatement | ifStatement | whileStatement | doStatement | returnStatement
 pub struct StatementCompiler {}
@@ -26,7 +27,13 @@ impl StatementCompiler {
             KeyWord::Let => {
                 LetStatementCompiler::compile(tokenizer, writer, symbol_tables, written)?
             }
-            KeyWord::If => IfStatementCompiler::compile(tokenizer, writer, symbol_tables, written)?,
+            KeyWord::If => IfStatementCompiler::compile(
+                tokenizer,
+                writer,
+                symbol_tables,
+                written,
+                &RandomLabelCreator::default(),
+            )?,
             KeyWord::While => {
                 WhileStatementCompiler::compile(tokenizer, writer, symbol_tables, written)?
             }
