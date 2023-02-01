@@ -4,7 +4,6 @@ use anyhow::{bail, Error, Result};
 
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
-use crate::tokenizer::key_word::KeyWord;
 use crate::tokenizer::token_type::TokenType;
 
 pub struct XmlWriter {
@@ -16,31 +15,6 @@ impl XmlWriter {
         XmlWriter {
             indent: String::new(),
         }
-    }
-
-    pub fn write_key_word(
-        &mut self,
-        tokenizer: &mut JackTokenizer,
-        targets: Vec<KeyWord>,
-        written: &mut impl Write,
-    ) -> Result<()> {
-        tokenizer.advance()?;
-        match tokenizer.token_type()? {
-            TokenType::Keyword => {
-                let keyword = tokenizer.key_word()?;
-                match keyword {
-                    keyword if targets.contains(&keyword) => writeln!(
-                        written,
-                        "{}<keyword> {} </keyword>",
-                        self.indent,
-                        tokenizer.key_word()?.to_string().to_lowercase()
-                    )?,
-                    _ => bail!(Error::msg("Illegal token")),
-                }
-            }
-            _ => bail!(Error::msg("Illegal token")),
-        }
-        Ok(())
     }
 
     pub fn write_identifier(
