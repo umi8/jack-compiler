@@ -18,8 +18,10 @@ impl Command {
     pub fn from(value: char) -> Option<Self> {
         match value {
             '+' => Some(Command::Add),
-            '&' => Some(Command::And),
             '=' => Some(Command::Eq),
+            '>' => Some(Command::Gt),
+            '<' => Some(Command::Lt),
+            '&' => Some(Command::And),
             _ => None,
         }
     }
