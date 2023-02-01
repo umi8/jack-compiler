@@ -19,7 +19,6 @@ impl ReturnStatementCompiler {
         written: &mut impl Write,
     ) -> Result<()> {
         // return
-        VmWriter::write_return(written)?;
         tokenizer.advance()?;
 
         // expression?
@@ -30,6 +29,7 @@ impl ReturnStatementCompiler {
         // ’;’
         tokenizer.advance()?;
 
+        VmWriter::write_return(written)?;
         Ok(())
     }
 }
@@ -47,11 +47,14 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
+push argument 0
+push constant 2
+call Math.multiply 2
 return
 "
         .to_string();
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "return;").unwrap();
+        writeln!(src_file, "return mask * 2;").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
@@ -59,7 +62,7 @@ return
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("x", "int", &Kind::Var);
+        symbol_tables.define("mask", "int", &Kind::Argument);
 
         let result = ReturnStatementCompiler::compile(
             &mut tokenizer,
