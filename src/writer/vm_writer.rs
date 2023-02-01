@@ -24,7 +24,7 @@ impl VmWriter {
     }
 
     pub fn write_label(label: &str, written: &mut impl Write) -> Result<()> {
-        writeln!(written, "Label {}", label)?;
+        writeln!(written, "label {}", label)?;
         Ok(())
     }
 
