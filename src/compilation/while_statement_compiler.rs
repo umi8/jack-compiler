@@ -7,6 +7,7 @@ use crate::compilation::statements_compiler::StatementsCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
+use crate::writer::command::Command;
 use crate::writer::label::LabelCreator;
 use crate::writer::vm_writer::VmWriter;
 
@@ -31,6 +32,7 @@ impl WhileStatementCompiler {
 
         // expression
         ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        VmWriter::write_arithmetic(&Command::Not, written)?;
 
         let label_if: String = label_creator.create("if");
         VmWriter::write_if(&label_if, written)?;
