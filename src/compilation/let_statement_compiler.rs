@@ -43,7 +43,9 @@ impl LetStatementCompiler {
         ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
         if let Some(index) = symbol_tables.index_of(&var_name) {
-            VmWriter::write_pop(&Segment::Local, index, written)?;
+            let kind = symbol_tables.kind_of(&var_name).unwrap();
+            let segment = Segment::from(kind);
+            VmWriter::write_pop(&segment, index, written)?;
         }
 
         // ’;’
