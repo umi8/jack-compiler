@@ -62,6 +62,7 @@ return
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("this", "Test", &Kind::Argument);
         symbol_tables.define("mask", "int", &Kind::Argument);
 
         let result = ReturnStatementCompiler::compile(

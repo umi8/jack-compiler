@@ -68,8 +68,9 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-Label goto_L2
+label goto_L2
 push local 0
+not
 if-goto if_L1
 push constant 8000
 push local 1
@@ -77,7 +78,7 @@ add
 push constant 1
 call Memory.poke 2
 goto goto_L2
-Label if_L1
+label if_L1
 ";
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();

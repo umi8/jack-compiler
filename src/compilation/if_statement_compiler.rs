@@ -86,11 +86,12 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-push argument 1
+push argument 0
 push local 0
 and
 push constant 0
 eq
+not
 not
 if-goto if_L1
 push constant 8000
@@ -99,13 +100,13 @@ add
 push constant 1
 call Memory.poke 2
 goto goto_L2
-Label if_L1
+label if_L1
 push constant 8000
 push local 1
 add
 push constant 0
 call Memory.poke 2
-Label goto_L2
+label goto_L2
 ";
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
