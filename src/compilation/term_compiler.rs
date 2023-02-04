@@ -36,6 +36,10 @@ impl TermCompiler {
                         KeyWord::False | KeyWord::Null => {
                             VmWriter::write_push(&Segment::Constant, 0, written)?
                         }
+                        KeyWord::This => {
+                            // Set the base of the object to the base of this segment
+                            VmWriter::write_push(&Segment::Pointer, 0, written)?
+                        }
                         _ => {}
                     }
                 }

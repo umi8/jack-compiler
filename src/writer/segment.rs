@@ -25,7 +25,7 @@ impl From<&Kind> for Segment {
     fn from(value: &Kind) -> Self {
         match value {
             Kind::Static => Segment::Static,
-            Kind::Field => Segment::Static,
+            Kind::Field => Segment::This,
             Kind::Argument => Segment::Argument,
             Kind::Var => Segment::Local,
         }

@@ -9,6 +9,7 @@ use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
+use crate::writer::segment::Segment;
 use crate::writer::vm_writer::VmWriter;
 
 /// subroutineBody = ’{’ varDec* statements ’}’
@@ -20,6 +21,7 @@ impl SubroutineBodyCompiler {
         writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         subroutine_name: &str,
+        subroutine_type: &str,
         written: &mut impl Write,
     ) -> Result<()> {
         // ’{’
@@ -44,11 +46,41 @@ impl SubroutineBodyCompiler {
             )?;
         }
 
+        Self::set_pointer(symbol_tables, subroutine_type, written)?;
+
         // statements
         StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
         // ’}’
         tokenizer.advance()?;
+
+        Ok(())
+    }
+
+    fn set_pointer(
+        symbol_tables: &mut SymbolTables,
+        subroutine_type: &str,
+        written: &mut impl Write,
+    ) -> Result<()> {
+        match subroutine_type {
+            "constructor" => {
+                VmWriter::write_push(
+                    &Segment::Constant,
+                    symbol_tables.var_count(Kind::Field),
+                    written,
+                )?;
+                // Allocate as much memory as the number of FIELD for the new object
+                VmWriter::write_call("Memory.alloc", 1, written)?;
+                // Set this segment to point to the current object (constructor and method only)
+                VmWriter::write_pop(&Segment::Pointer, 0, written)?;
+            }
+            "method" => {
+                VmWriter::write_push(&Segment::Argument, 0, written)?;
+                // Set this segment to point to the current object (constructor and method only)
+                VmWriter::write_pop(&Segment::Pointer, 0, written)?;
+            }
+            _ => {}
+        }
 
         Ok(())
     }
@@ -65,7 +97,7 @@ mod tests {
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
     #[test]
-    fn can_compile() {
+    fn can_compile_function() {
         let expected = "\
 function Test.convert 3
 "
@@ -90,6 +122,57 @@ function Test.convert 3
             &mut writer,
             &mut symbol_tables,
             "convert",
+            "function",
+            &mut output,
+        );
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn can_compile_constructor() {
+        let expected = "\
+function SquareGame.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+push constant 0
+push constant 0
+push constant 30
+call Square.new 3
+pop this 0
+push constant 0
+pop this 1
+push pointer 0
+return
+"
+        .to_string();
+
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "{{").unwrap();
+        writeln!(src_file, "    let square = Square.new(0, 0, 30);").unwrap();
+        writeln!(src_file, "    let direction = 0;").unwrap();
+        writeln!(src_file, "    return this;").unwrap();
+        writeln!(src_file, "}}").unwrap();
+        src_file.rewind().unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("square", "Square", &Kind::Field);
+        symbol_tables.define("direction", "int", &Kind::Field);
+        symbol_tables.define("this", "SquareGame", &Kind::Argument);
+
+        let result = SubroutineBodyCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            "new",
+            "constructor",
             &mut output,
         );
         let actual = String::from_utf8(output).unwrap();
