@@ -4,6 +4,7 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::writer::segment::Segment;
@@ -42,9 +43,14 @@ impl LetStatementCompiler {
         // expression
         ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
-        if let Some(index) = symbol_tables.index_of(&var_name) {
-            let kind = symbol_tables.kind_of(&var_name).unwrap();
+        if let Some(kind) = symbol_tables.kind_of(&var_name) {
             let segment = Segment::from(kind);
+            let index = match kind {
+                Kind::Static | Kind::Field | Kind::Var => {
+                    symbol_tables.index_of(&var_name).unwrap()
+                }
+                Kind::Argument => symbol_tables.index_of(&var_name).unwrap() - 1,
+            };
             VmWriter::write_pop(&segment, index, written)?;
         }
 
