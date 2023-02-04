@@ -123,7 +123,7 @@ mod tests {
     fn can_compile_identifier() {
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "value & mask").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 
@@ -145,7 +145,7 @@ mod tests {
     fn can_compile_int_const() {
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "1").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 
@@ -169,7 +169,7 @@ neg
 ";
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "-1").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

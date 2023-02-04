@@ -38,7 +38,7 @@ impl SubroutineBodyCompiler {
 
         if let Some(class_name) = symbol_tables.type_of("this") {
             VmWriter::write_function(
-                format!("{}.{}", class_name, subroutine_name).as_str(),
+                format!("{class_name}.{subroutine_name}").as_str(),
                 symbol_tables.var_count(Kind::Var),
                 written,
             )?;
@@ -76,7 +76,7 @@ function Test.convert 3
         writeln!(src_file, "    var int mask, position;").unwrap();
         writeln!(src_file, "    var boolean loop;").unwrap();
         writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

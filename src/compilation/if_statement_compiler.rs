@@ -115,7 +115,7 @@ Label goto_L2
         writeln!(src_file, "else {{").unwrap();
         writeln!(src_file, "    do Memory.poke(8000 + position, 0);").unwrap();
         writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

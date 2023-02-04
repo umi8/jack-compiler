@@ -55,7 +55,7 @@ return
         .to_string();
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "return mask * 2;").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

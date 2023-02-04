@@ -84,7 +84,7 @@ Label if_L1
         writeln!(src_file, "while (loop) {{").unwrap();
         writeln!(src_file, "    do Memory.poke(8000 + position, 1);").unwrap();
         writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

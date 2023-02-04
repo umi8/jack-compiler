@@ -30,7 +30,7 @@ pub enum KeyWord {
 
 impl fmt::Display for KeyWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -58,7 +58,7 @@ impl KeyWord {
             "else" => Ok(KeyWord::Else),
             "while" => Ok(KeyWord::While),
             "return" => Ok(KeyWord::Return),
-            _ => bail!(Error::msg(format!("Illegal Argument Error: {}", key_word))),
+            _ => bail!(Error::msg(format!("Illegal Argument Error: {key_word}"))),
         }
     }
 

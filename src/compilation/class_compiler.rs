@@ -82,7 +82,7 @@ mod tests {
         writeln!(src_file, "    function void main() {{").unwrap();
         writeln!(src_file, "    }}").unwrap();
         writeln!(src_file, "}}").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

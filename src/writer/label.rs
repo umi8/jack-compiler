@@ -17,6 +17,6 @@ impl LabelCreator for RandomLabelCreator {
             .take(8)
             .map(char::from)
             .collect();
-        format!("{}_{}", command, random_label)
+        format!("{command}_{random_label}")
     }
 }

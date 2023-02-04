@@ -18,7 +18,7 @@ impl Kind {
             "filed" => Ok(Kind::Field),
             "argument" => Ok(Kind::Argument),
             "var" => Ok(Kind::Var),
-            _ => bail!(Error::msg(format!("Illegal Argument Error: {}", value))),
+            _ => bail!(Error::msg(format!("Illegal Argument Error: {value}"))),
         }
     }
 
@@ -34,6 +34,6 @@ impl Kind {
 
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
