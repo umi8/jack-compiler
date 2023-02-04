@@ -57,7 +57,7 @@ mod tests {
     fn can_compile() {
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "var int i, j, sum;").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();

@@ -9,43 +9,42 @@ pub struct VmWriter {}
 
 impl VmWriter {
     pub fn write_push(segment: &Segment, index: usize, written: &mut impl Write) -> Result<()> {
-        writeln!(written, "push {} {}", segment, index)?;
+        writeln!(written, "push {segment} {index}")?;
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn write_pop(segment: &Segment, index: usize, written: &mut impl Write) -> Result<()> {
-        writeln!(written, "pop {} {}", segment, index)?;
+        writeln!(written, "pop {segment} {index}")?;
         Ok(())
     }
 
     pub fn write_arithmetic(command: &Command, written: &mut impl Write) -> Result<()> {
-        writeln!(written, "{}", command)?;
+        writeln!(written, "{command}")?;
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn write_label(_label: &str) {
-        todo!()
+    pub fn write_label(label: &str, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "label {label}")?;
+        Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn write_goto(_label: &str) {
-        todo!()
+    pub fn write_goto(label: &str, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "goto {label}")?;
+        Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn write_if(_label: &str) {
-        todo!()
+    pub fn write_if(label: &str, written: &mut impl Write) -> Result<()> {
+        writeln!(written, "if-goto {label}")?;
+        Ok(())
     }
 
     pub fn write_call(name: &str, n_args: usize, written: &mut impl Write) -> Result<()> {
-        writeln!(written, "call {} {}", name, n_args)?;
+        writeln!(written, "call {name} {n_args}")?;
         Ok(())
     }
 
     pub fn write_function(name: &str, n_locals: usize, written: &mut impl Write) -> Result<()> {
-        writeln!(written, "function {} {}", name, n_locals)?;
+        writeln!(written, "function {name} {n_locals}")?;
         Ok(())
     }
 

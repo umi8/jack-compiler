@@ -30,7 +30,7 @@ impl SubroutineCallCompiler {
             tokenizer.advance()?;
             let subroutine_name = String::from(tokenizer.identifier());
 
-            format!("{}.{}", class_name, subroutine_name)
+            format!("{class_name}.{subroutine_name}")
         } else {
             String::from(tokenizer.identifier())
         };
@@ -70,7 +70,7 @@ call Output.printInt 1
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "Output.printInt(100)").unwrap();
-        src_file.seek(SeekFrom::Start(0)).unwrap();
+        src_file.rewind().unwrap();
         let path = src_file.path();
         let mut output = Vec::<u8>::new();
 

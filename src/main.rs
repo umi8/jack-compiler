@@ -66,5 +66,5 @@ fn create_output_file_name(path: &Path) -> String {
 
     let dir = path.to_string_lossy();
     let file_name = path.file_name().unwrap().to_string_lossy();
-    format!("{}/{}.vm", dir, file_name)
+    format!("{dir}/{file_name}.vm")
 }

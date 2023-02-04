@@ -23,12 +23,12 @@ impl SymbolTables {
     pub fn define(&mut self, name: &str, type_name: &str, kind: &Kind) {
         match kind {
             Kind::Static | Kind::Field => {
-                let index = self.class_table.len();
+                let index = self.var_count(Kind::from(kind));
                 self.class_table
                     .insert(String::from(name), Symbol::new(type_name, kind, index));
             }
             Kind::Argument | Kind::Var => {
-                let index = self.subroutine_table.len();
+                let index = self.var_count(Kind::from(kind));
                 self.subroutine_table
                     .insert(String::from(name), Symbol::new(type_name, kind, index));
             }
