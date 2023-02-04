@@ -39,17 +39,17 @@ impl SubroutineDecCompiler {
         // parameterList
         ParameterListCompiler::compile(tokenizer, symbol_tables)?;
 
-        VmWriter::write_function(
-            format!("{}.{}", class_name, subroutine_name).as_str(),
-            symbol_tables.var_count(Kind::Argument) - 1,
-            written,
-        )?;
-
         // ’)’
         tokenizer.advance()?;
 
         // subroutineBody
         SubroutineBodyCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+
+        VmWriter::write_function(
+            format!("{}.{}", class_name, subroutine_name).as_str(),
+            symbol_tables.var_count(Kind::Var),
+            written,
+        )?;
 
         Ok(())
     }
@@ -67,12 +67,14 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-function Test.main 0
+function Test.convert 3
 "
         .to_string();
 
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(src_file, "function void main() {{").unwrap();
+        writeln!(src_file, "function void convert(int value) {{").unwrap();
+        writeln!(src_file, "    var int mask, position;").unwrap();
+        writeln!(src_file, "    var boolean loop;").unwrap();
         writeln!(src_file, "}}").unwrap();
         src_file.seek(SeekFrom::Start(0)).unwrap();
         let path = src_file.path();
