@@ -56,7 +56,7 @@ impl SubroutineBodyCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
     use crate::compilation::xml_writer::XmlWriter;

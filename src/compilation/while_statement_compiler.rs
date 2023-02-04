@@ -56,7 +56,7 @@ impl WhileStatementCompiler {
 #[cfg(test)]
 mod tests {
     use mockall::predicate::eq;
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::while_statement_compiler::WhileStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;

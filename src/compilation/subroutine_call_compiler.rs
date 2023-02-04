@@ -53,7 +53,7 @@ impl SubroutineCallCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
     use crate::compilation::xml_writer::XmlWriter;

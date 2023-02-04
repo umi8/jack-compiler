@@ -111,7 +111,7 @@ impl TermCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::term_compiler::TermCompiler;
     use crate::compilation::xml_writer::XmlWriter;

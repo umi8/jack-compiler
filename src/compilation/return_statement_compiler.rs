@@ -36,7 +36,7 @@ impl ReturnStatementCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::return_statement_compiler::ReturnStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;

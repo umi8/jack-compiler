@@ -40,7 +40,7 @@ impl ParameterListCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::parameter_list_compiler::ParameterListCompiler;
     use crate::symbol_table::kind::Kind;

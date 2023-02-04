@@ -67,7 +67,7 @@ impl ClassCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::class_compiler::ClassCompiler;
     use crate::compilation::xml_writer::XmlWriter;

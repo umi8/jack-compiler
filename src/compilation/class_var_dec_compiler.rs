@@ -42,7 +42,7 @@ impl ClassVarDecCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::class_var_dec_compiler::ClassVarDecCompiler;
     use crate::symbol_table::kind::Kind;
