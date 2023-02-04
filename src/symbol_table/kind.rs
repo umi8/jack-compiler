@@ -15,7 +15,7 @@ impl Kind {
     pub fn from_str(value: &str) -> Result<Kind> {
         match value {
             "static" => Ok(Kind::Static),
-            "filed" => Ok(Kind::Field),
+            "field" => Ok(Kind::Field),
             "argument" => Ok(Kind::Argument),
             "var" => Ok(Kind::Var),
             _ => bail!(Error::msg(format!("Illegal Argument Error: {value}"))),
