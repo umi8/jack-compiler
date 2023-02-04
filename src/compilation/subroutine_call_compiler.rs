@@ -20,6 +20,8 @@ impl SubroutineCallCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
+        let mut number_of_args = 0;
+
         // subroutineName | (className | varName)
         tokenizer.advance()?;
         let subroutine_name = if tokenizer.peek()?.value() == "." {
@@ -34,6 +36,7 @@ impl SubroutineCallCompiler {
                     Kind::Argument => symbol_tables.index_of(&var_class_name).unwrap() - 1,
                 };
                 VmWriter::write_push(&segment, index, written)?;
+                number_of_args += 1;
             }
 
             let class_name = if symbol_tables.type_of(&var_class_name).is_some() {
@@ -58,7 +61,7 @@ impl SubroutineCallCompiler {
         tokenizer.advance()?;
 
         // expressionList
-        let number_of_args =
+        number_of_args +=
             ExpressionListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
 
         VmWriter::write_call(subroutine_name.as_str(), number_of_args, written)?;
