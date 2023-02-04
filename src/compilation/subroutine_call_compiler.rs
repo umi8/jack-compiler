@@ -4,8 +4,10 @@ use anyhow::Result;
 
 use crate::compilation::expression_list_compiler::ExpressionListCompiler;
 use crate::compilation::xml_writer::XmlWriter;
+use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
+use crate::writer::segment::Segment;
 use crate::writer::vm_writer::VmWriter;
 
 /// subroutineCall = subroutineName ’(’ expressionList ’)’ | (className | varName) ’.’ subroutineName ’(’ expressionList ’)’
@@ -21,7 +23,24 @@ impl SubroutineCallCompiler {
         // subroutineName | (className | varName)
         tokenizer.advance()?;
         let subroutine_name = if tokenizer.peek()?.value() == "." {
-            let class_name = String::from(tokenizer.identifier());
+            let var_class_name = String::from(tokenizer.identifier());
+
+            if let Some(kind) = symbol_tables.kind_of(&var_class_name) {
+                let segment = Segment::from(kind);
+                let index = match kind {
+                    Kind::Static | Kind::Field | Kind::Var => {
+                        symbol_tables.index_of(&var_class_name).unwrap()
+                    }
+                    Kind::Argument => symbol_tables.index_of(&var_class_name).unwrap() - 1,
+                };
+                VmWriter::write_push(&segment, index, written)?;
+            }
+
+            let class_name = if symbol_tables.type_of(&var_class_name).is_some() {
+                symbol_tables.type_of(&var_class_name).unwrap()
+            } else {
+                var_class_name
+            };
 
             // ’.’
             tokenizer.advance()?;
