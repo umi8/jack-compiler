@@ -74,7 +74,7 @@ impl IfStatementCompiler {
 #[cfg(test)]
 mod tests {
     use mockall::predicate::eq;
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::if_statement_compiler::IfStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;

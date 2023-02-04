@@ -63,7 +63,7 @@ impl LetStatementCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::let_statement_compiler::LetStatementCompiler;
     use crate::compilation::xml_writer::XmlWriter;

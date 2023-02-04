@@ -48,7 +48,7 @@ impl ExpressionCompiler {
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::{Seek, Write};
 
     use crate::compilation::expression_compiler::ExpressionCompiler;
     use crate::compilation::xml_writer::XmlWriter;
