@@ -34,8 +34,11 @@ impl ExpressionCompiler {
 
                 if let Some(command) = Command::from(op) {
                     VmWriter::write_arithmetic(&command, written)?;
-                } else {
+                } else if op == '*' {
                     VmWriter::write_call("Math.multiply", 2, written)?;
+                } else {
+                    // in case of '/'(divide)
+                    VmWriter::write_call("Math.divide", 2, written)?;
                 }
             } else {
                 break;
