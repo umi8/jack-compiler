@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::statements_compiler::StatementsCompiler;
 use crate::compilation::var_dec_compiler::VarDecCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -18,7 +17,6 @@ pub struct SubroutineBodyCompiler {}
 impl SubroutineBodyCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         subroutine_name: &str,
         subroutine_type: &str,
@@ -49,7 +47,7 @@ impl SubroutineBodyCompiler {
         Self::set_pointer(symbol_tables, subroutine_type, written)?;
 
         // statements
-        StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        StatementsCompiler::compile(tokenizer, symbol_tables, written)?;
 
         // ’}’
         tokenizer.advance()?;
@@ -91,7 +89,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -113,13 +110,11 @@ function Test.convert 3
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("this", "Test", &Kind::Argument);
 
         let result = SubroutineBodyCompiler::compile(
             &mut tokenizer,
-            &mut writer,
             &mut symbol_tables,
             "convert",
             "function",
@@ -161,7 +156,6 @@ return
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("square", "Square", &Kind::Field);
         symbol_tables.define("direction", "int", &Kind::Field);
@@ -169,7 +163,6 @@ return
 
         let result = SubroutineBodyCompiler::compile(
             &mut tokenizer,
-            &mut writer,
             &mut symbol_tables,
             "new",
             "constructor",

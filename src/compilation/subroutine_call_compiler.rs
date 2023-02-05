@@ -3,7 +3,6 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::compilation::expression_list_compiler::ExpressionListCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -16,7 +15,6 @@ pub struct SubroutineCallCompiler {}
 impl SubroutineCallCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
@@ -68,8 +66,7 @@ impl SubroutineCallCompiler {
         tokenizer.advance()?;
 
         // expressionList
-        number_of_args +=
-            ExpressionListCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        number_of_args += ExpressionListCompiler::compile(tokenizer, symbol_tables, written)?;
 
         VmWriter::write_call(subroutine_name.as_str(), number_of_args, written)?;
 
@@ -85,7 +82,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -105,15 +101,10 @@ call Output.printInt 1
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result = SubroutineCallCompiler::compile(
-            &mut tokenizer,
-            &mut writer,
-            &mut symbol_tables,
-            &mut output,
-        );
+        let result =
+            SubroutineCallCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -136,16 +127,11 @@ call Output.printInt 2
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("this", "Output", &Kind::Argument);
 
-        let result = SubroutineCallCompiler::compile(
-            &mut tokenizer,
-            &mut writer,
-            &mut symbol_tables,
-            &mut output,
-        );
+        let result =
+            SubroutineCallCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

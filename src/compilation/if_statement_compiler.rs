@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::statements_compiler::StatementsCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
@@ -19,7 +18,6 @@ pub struct IfStatementCompiler {}
 impl IfStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
         label_creator: &dyn LabelCreator,
@@ -31,7 +29,7 @@ impl IfStatementCompiler {
         tokenizer.advance()?;
 
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
         VmWriter::write_arithmetic(&Command::Not, written)?;
 
         let label_if: String = label_creator.create("if");
@@ -44,7 +42,7 @@ impl IfStatementCompiler {
         tokenizer.advance()?;
 
         // statements
-        StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        StatementsCompiler::compile(tokenizer, symbol_tables, written)?;
 
         // ’}’
         tokenizer.advance()?;
@@ -61,7 +59,7 @@ impl IfStatementCompiler {
             // ’{’
             tokenizer.advance()?;
             // statements
-            StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+            StatementsCompiler::compile(tokenizer, symbol_tables, written)?;
             // ’}’
             tokenizer.advance()?;
             VmWriter::write_label(&label_goto, written)?;
@@ -80,7 +78,6 @@ mod tests {
     use mockall::predicate::eq;
 
     use crate::compilation::if_statement_compiler::IfStatementCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -126,7 +123,6 @@ label goto_L2
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("this", "Main", &Kind::Argument);
         symbol_tables.define("value", "int", &Kind::Argument);
@@ -145,7 +141,6 @@ label goto_L2
 
         let result = IfStatementCompiler::compile(
             &mut tokenizer,
-            &mut writer,
             &mut symbol_tables,
             &mut output,
             &mock_label_creator,
@@ -178,7 +173,6 @@ label if_L1
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("square", "Square", &Kind::Field);
         symbol_tables.define("direction", "int", &Kind::Field);
@@ -192,7 +186,6 @@ label if_L1
 
         let result = IfStatementCompiler::compile(
             &mut tokenizer,
-            &mut writer,
             &mut symbol_tables,
             &mut output,
             &mock_label_creator,

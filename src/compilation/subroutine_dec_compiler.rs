@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::parameter_list_compiler::ParameterListCompiler;
 use crate::compilation::subroutine_body_compiler::SubroutineBodyCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -14,7 +13,6 @@ pub struct SubroutineDecCompiler {}
 impl SubroutineDecCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
@@ -40,7 +38,6 @@ impl SubroutineDecCompiler {
         // subroutineBody
         SubroutineBodyCompiler::compile(
             tokenizer,
-            writer,
             symbol_tables,
             &subroutine_name,
             &subroutine_type,

@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::class_var_dec_compiler::ClassVarDecCompiler;
 use crate::compilation::subroutine_dec_compiler::SubroutineDecCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -16,7 +15,6 @@ pub struct ClassCompiler {}
 impl ClassCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
@@ -52,7 +50,7 @@ impl ClassCompiler {
                 KeyWord::Constructor | KeyWord::Function | KeyWord::Method => {
                     symbol_tables.start_subroutine();
                     symbol_tables.define("this", &class_name, &Kind::Argument);
-                    SubroutineDecCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                    SubroutineDecCompiler::compile(tokenizer, symbol_tables, written)?;
                 }
                 _ => break,
             }
@@ -70,7 +68,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::class_compiler::ClassCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -87,11 +84,9 @@ mod tests {
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result =
-            ClassCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let result = ClassCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
 
         assert!(result.is_ok());
         assert_eq!(&Kind::Argument, symbol_tables.kind_of("this").unwrap());
