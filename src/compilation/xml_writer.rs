@@ -96,22 +96,4 @@ impl XmlWriter {
         }
         Ok(())
     }
-
-    pub fn write_string_constant(
-        &mut self,
-        tokenizer: &mut JackTokenizer,
-        written: &mut impl Write,
-    ) -> Result<()> {
-        tokenizer.advance()?;
-        match tokenizer.token_type()? {
-            TokenType::StringConst => writeln!(
-                written,
-                "{}<stringConstant> {} </stringConstant>",
-                self.indent,
-                tokenizer.string_val()
-            )?,
-            _ => bail!(Error::msg("Illegal token")),
-        }
-        Ok(())
-    }
 }
