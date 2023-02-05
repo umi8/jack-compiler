@@ -264,6 +264,7 @@ push local 0
 push local 1
 add
 pop pointer 1
+push that 0
 ";
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "a[i]").unwrap();
