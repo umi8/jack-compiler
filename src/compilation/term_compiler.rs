@@ -73,13 +73,33 @@ impl TermCompiler {
                 match tokenizer.peek_second()?.value().as_str() {
                     "[" => {
                         // varName
-                        writer.write_identifier(tokenizer, symbol_tables, written)?;
+                        tokenizer.advance()?;
+                        let var_name = String::from(tokenizer.identifier());
+
+                        if let Some(kind) = symbol_tables.kind_of(&var_name) {
+                            let segment = Segment::from(kind);
+                            let index = match kind {
+                                Kind::Static | Kind::Field | Kind::Var => {
+                                    symbol_tables.index_of(&var_name).unwrap()
+                                }
+                                Kind::Argument => symbol_tables.index_of(&var_name).unwrap() - 1,
+                            };
+                            VmWriter::write_push(&segment, index, written)?;
+                        }
+
                         // '['
-                        writer.write_symbol(tokenizer, written)?;
+                        tokenizer.advance()?;
                         // expression
                         ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
                         // ']'
-                        writer.write_symbol(tokenizer, written)?;
+                        tokenizer.advance()?;
+
+                        // add base address and index
+                        VmWriter::write_arithmetic(&Command::Add, written)?;
+
+                        // Use that segment to access var_name[expression]
+                        VmWriter::write_pop(&Segment::Pointer, 1, written)?;
+                        // VmWriter::write_pop(&Segment::That, 0, written)?;
                     }
                     "." | "(" => {
                         SubroutineCallCompiler::compile(tokenizer, writer, symbol_tables, written)?
@@ -228,6 +248,34 @@ neg
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
+
+        let result =
+            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn can_compile_array() {
+        let expected = "\
+push local 0
+push local 1
+add
+pop pointer 1
+";
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "a[i]").unwrap();
+        src_file.rewind().unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("a", "Array", &Kind::Var);
+        symbol_tables.define("i", "int", &Kind::Var);
 
         let result =
             TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
