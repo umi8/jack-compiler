@@ -77,6 +77,7 @@ push local 1
 add
 push constant 1
 call Memory.poke 2
+pop temp 0
 goto goto_L2
 label if_L1
 ";

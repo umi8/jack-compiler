@@ -102,6 +102,7 @@ push local 1
 add
 push constant 1
 call Memory.poke 2
+pop temp 0
 goto goto_L2
 label if_L1
 push constant 8000
@@ -109,6 +110,7 @@ push local 1
 add
 push constant 0
 call Memory.poke 2
+pop temp 0
 label goto_L2
 ";
 
