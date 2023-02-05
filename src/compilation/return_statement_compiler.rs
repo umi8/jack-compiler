@@ -6,6 +6,7 @@ use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
+use crate::writer::segment::Segment;
 use crate::writer::vm_writer::VmWriter;
 
 /// returnStatement = ’return’ expression? ’;’
@@ -24,6 +25,8 @@ impl ReturnStatementCompiler {
         // expression?
         if tokenizer.peek()?.value() != ";" {
             ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        } else {
+            VmWriter::write_push(&Segment::Constant, 0, written)?;
         }
 
         // ’;’
@@ -64,6 +67,35 @@ return
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("this", "Test", &Kind::Argument);
         symbol_tables.define("mask", "int", &Kind::Argument);
+
+        let result = ReturnStatementCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn can_compile_void() {
+        let expected = "\
+push constant 0
+return
+"
+        .to_string();
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "return;").unwrap();
+        src_file.rewind().unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
 
         let result = ReturnStatementCompiler::compile(
             &mut tokenizer,

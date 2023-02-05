@@ -18,9 +18,11 @@ impl SubroutineDecCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
+        // ’constructor’ | ’function’ | ’method’
+        tokenizer.advance()?;
+        let subroutine_type = String::from(tokenizer.identifier());
+
         let subroutine_name = {
-            // ’constructor’ | ’function’ | ’method’
-            tokenizer.advance()?;
             // ’void’ | type
             tokenizer.advance()?;
             // subroutineName
@@ -41,6 +43,7 @@ impl SubroutineDecCompiler {
             writer,
             symbol_tables,
             &subroutine_name,
+            &subroutine_type,
             written,
         )?;
 
