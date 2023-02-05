@@ -54,7 +54,14 @@ impl SubroutineCallCompiler {
 
             format!("{class_name}.{subroutine_name}")
         } else {
-            String::from(tokenizer.identifier())
+            // In the case of a method,
+            // pass a reference to the object to which the method belongs as the first argument to be pushed.
+            VmWriter::write_push(&Segment::Pointer, 0, written)?;
+            number_of_args += 1;
+
+            let class_name = symbol_tables.type_of("this").unwrap();
+            let subroutine_name = String::from(tokenizer.identifier());
+            format!("{class_name}.{subroutine_name}")
         };
 
         // ’(’
@@ -79,6 +86,7 @@ mod tests {
 
     use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
     use crate::compilation::xml_writer::XmlWriter;
+    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -99,6 +107,38 @@ call Output.printInt 1
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
+
+        let result = SubroutineCallCompiler::compile(
+            &mut tokenizer,
+            &mut writer,
+            &mut symbol_tables,
+            &mut output,
+        );
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn can_compile_method() {
+        let expected = "\
+push pointer 0
+push constant 100
+call Output.printInt 2
+"
+        .to_string();
+
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "printInt(100)").unwrap();
+        src_file.rewind().unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+        symbol_tables.define("this", "Output", &Kind::Argument);
 
         let result = SubroutineCallCompiler::compile(
             &mut tokenizer,
