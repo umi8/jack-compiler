@@ -106,7 +106,21 @@ impl TermCompiler {
                 tokenizer.advance()?;
                 VmWriter::write_push(&Segment::Constant, tokenizer.int_val()?, written)?;
             }
-            TokenType::StringConst => writer.write_string_constant(tokenizer, written)?,
+            TokenType::StringConst => {
+                tokenizer.advance()?;
+                let value = tokenizer.string_val();
+                VmWriter::write_push(&Segment::Constant, value.len(), written)?;
+                VmWriter::write_call("String.new", 1, written)?;
+                for c in value.chars() {
+                    let unicode_hex = format!("{:x}", c as u32);
+                    VmWriter::write_push(
+                        &Segment::Constant,
+                        usize::from_str_radix(&unicode_hex, 16)?,
+                        written,
+                    )?;
+                    VmWriter::write_call("String.appendChar", 2, written)?;
+                }
+            }
         }
 
         Ok(())
@@ -163,6 +177,40 @@ mod tests {
 
         assert!(result.is_ok());
         assert_eq!("push constant 1\n", actual);
+    }
+
+    #[test]
+    fn can_compile_string_const() {
+        let expected = "\
+push constant 5
+call String.new 1
+push constant 72
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+push constant 119
+call String.appendChar 2
+push constant 63
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+";
+        let mut src_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(src_file, "\"How? \"").unwrap();
+        src_file.rewind().unwrap();
+        let path = src_file.path();
+        let mut output = Vec::<u8>::new();
+
+        let mut tokenizer = JackTokenizer::new(path).unwrap();
+        let mut writer = XmlWriter::new();
+        let mut symbol_tables = SymbolTables::new();
+
+        let result =
+            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let actual = String::from_utf8(output).unwrap();
+
+        assert!(result.is_ok());
+        assert_eq!(expected, actual);
     }
 
     #[test]
