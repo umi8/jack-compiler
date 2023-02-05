@@ -54,10 +54,6 @@ impl JackTokenizer {
         }
     }
 
-    pub fn token_type(&self) -> Result<&TokenType> {
-        Ok(self.current_token.token_type())
-    }
-
     pub fn key_word(&self) -> Result<KeyWord> {
         KeyWord::from(self.current_token.value().as_str())
     }
