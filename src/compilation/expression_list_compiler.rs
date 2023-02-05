@@ -3,7 +3,6 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -13,7 +12,6 @@ pub struct ExpressionListCompiler {}
 impl ExpressionListCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<usize> {
@@ -22,7 +20,7 @@ impl ExpressionListCompiler {
         // (expression)?
         if tokenizer.is_term()? {
             // expression
-            ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+            ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
             expression_count += 1;
 
             // (’,’ expression)*
@@ -31,7 +29,7 @@ impl ExpressionListCompiler {
                 tokenizer.advance()?;
 
                 // expression
-                ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
                 expression_count += 1;
             }
         }

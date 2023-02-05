@@ -3,7 +3,6 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::compilation::term_compiler::TermCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::writer::command::Command;
@@ -15,12 +14,11 @@ pub struct ExpressionCompiler {}
 impl ExpressionCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
         // term
-        TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        TermCompiler::compile(tokenizer, symbol_tables, written)?;
 
         // (op term)*
         loop {
@@ -30,7 +28,7 @@ impl ExpressionCompiler {
                 let op = tokenizer.symbol();
 
                 // term
-                TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                TermCompiler::compile(tokenizer, symbol_tables, written)?;
 
                 if let Some(command) = Command::from(op) {
                     VmWriter::write_arithmetic(&command, written)?;
@@ -54,7 +52,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::expression_compiler::ExpressionCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -77,15 +74,9 @@ add
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result = ExpressionCompiler::compile(
-            &mut tokenizer,
-            &mut writer,
-            &mut symbol_tables,
-            &mut output,
-        );
+        let result = ExpressionCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

@@ -16,4 +16,3 @@ mod subroutine_dec_compiler;
 mod term_compiler;
 mod var_dec_compiler;
 mod while_statement_compiler;
-mod xml_writer;

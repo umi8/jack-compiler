@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -20,7 +19,6 @@ pub struct TermCompiler {}
 impl TermCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
@@ -49,7 +47,7 @@ impl TermCompiler {
                     // '('
                     tokenizer.advance()?;
                     // expression
-                    ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                    ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
                     // ')'
                     tokenizer.advance()?;
                 }
@@ -57,14 +55,14 @@ impl TermCompiler {
                     // unaryOp
                     tokenizer.advance()?;
                     // term
-                    TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                    TermCompiler::compile(tokenizer, symbol_tables, written)?;
                     VmWriter::write_arithmetic(&Command::Neg, written)?;
                 }
                 "~" => {
                     // unaryOp
                     tokenizer.advance()?;
                     // term
-                    TermCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                    TermCompiler::compile(tokenizer, symbol_tables, written)?;
                     VmWriter::write_arithmetic(&Command::Not, written)?;
                 }
                 _ => {}
@@ -90,7 +88,7 @@ impl TermCompiler {
                         // '['
                         tokenizer.advance()?;
                         // expression
-                        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+                        ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
                         // ']'
                         tokenizer.advance()?;
 
@@ -102,7 +100,7 @@ impl TermCompiler {
                         VmWriter::write_push(&Segment::That, 0, written)?;
                     }
                     "." | "(" => {
-                        SubroutineCallCompiler::compile(tokenizer, writer, symbol_tables, written)?
+                        SubroutineCallCompiler::compile(tokenizer, symbol_tables, written)?
                     }
                     _ => {
                         // varName
@@ -152,7 +150,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::term_compiler::TermCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -166,13 +163,11 @@ mod tests {
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("this", "Test", &Kind::Argument);
         symbol_tables.define("value", "int", &Kind::Argument);
 
-        let result =
-            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let result = TermCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -188,11 +183,9 @@ mod tests {
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result =
-            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let result = TermCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -222,11 +215,9 @@ call String.appendChar 2
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result =
-            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let result = TermCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -246,11 +237,9 @@ neg
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
 
-        let result =
-            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let result = TermCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -273,13 +262,11 @@ push that 0
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("a", "Array", &Kind::Var);
         symbol_tables.define("i", "int", &Kind::Var);
 
-        let result =
-            TermCompiler::compile(&mut tokenizer, &mut writer, &mut symbol_tables, &mut output);
+        let result = TermCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

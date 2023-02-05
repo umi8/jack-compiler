@@ -3,7 +3,6 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -17,7 +16,6 @@ pub struct LetStatementCompiler {}
 impl LetStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
@@ -47,7 +45,7 @@ impl LetStatementCompiler {
             // ’[’
             tokenizer.advance()?;
             // expression
-            ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+            ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
             // ’]’
             tokenizer.advance()?;
 
@@ -59,7 +57,7 @@ impl LetStatementCompiler {
         tokenizer.advance()?;
 
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
 
         if is_array {
             // Set the that segment to point to the address of an array element (using "pointer 1")
@@ -91,7 +89,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::let_statement_compiler::LetStatementCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -111,16 +108,10 @@ pop local 0
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("value", "int", &Kind::Var);
 
-        let result = LetStatementCompiler::compile(
-            &mut tokenizer,
-            &mut writer,
-            &mut symbol_tables,
-            &mut output,
-        );
+        let result = LetStatementCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
@@ -147,18 +138,12 @@ pop local 2
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("a", "Array", &Kind::Var);
         symbol_tables.define("i", "int", &Kind::Var);
         symbol_tables.define("sum", "int", &Kind::Var);
 
-        let result = LetStatementCompiler::compile(
-            &mut tokenizer,
-            &mut writer,
-            &mut symbol_tables,
-            &mut output,
-        );
+        let result = LetStatementCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());

@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::statements_compiler::StatementsCompiler;
-use crate::compilation::xml_writer::XmlWriter;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::writer::command::Command;
@@ -17,7 +16,6 @@ pub struct WhileStatementCompiler {}
 impl WhileStatementCompiler {
     pub fn compile(
         tokenizer: &mut JackTokenizer,
-        writer: &mut XmlWriter,
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
         label_creator: &dyn LabelCreator,
@@ -31,7 +29,7 @@ impl WhileStatementCompiler {
         VmWriter::write_label(&label_goto, written)?;
 
         // expression
-        ExpressionCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
         VmWriter::write_arithmetic(&Command::Not, written)?;
 
         let label_if: String = label_creator.create("if");
@@ -43,7 +41,7 @@ impl WhileStatementCompiler {
         tokenizer.advance()?;
 
         // statements
-        StatementsCompiler::compile(tokenizer, writer, symbol_tables, written)?;
+        StatementsCompiler::compile(tokenizer, symbol_tables, written)?;
 
         VmWriter::write_goto(&label_goto, written)?;
         VmWriter::write_label(&label_if, written)?;
@@ -53,13 +51,14 @@ impl WhileStatementCompiler {
         Ok(())
     }
 }
+
 #[cfg(test)]
 mod tests {
-    use mockall::predicate::eq;
     use std::io::{Seek, Write};
 
+    use mockall::predicate::eq;
+
     use crate::compilation::while_statement_compiler::WhileStatementCompiler;
-    use crate::compilation::xml_writer::XmlWriter;
     use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
@@ -91,7 +90,6 @@ label if_L1
         let mut output = Vec::<u8>::new();
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
-        let mut writer = XmlWriter::new();
         let mut symbol_tables = SymbolTables::new();
         symbol_tables.define("loop", "boolean", &Kind::Var);
         symbol_tables.define("position", "int", &Kind::Var);
@@ -108,7 +106,6 @@ label if_L1
 
         let result = WhileStatementCompiler::compile(
             &mut tokenizer,
-            &mut writer,
             &mut symbol_tables,
             &mut output,
             &mock_label_creator,
