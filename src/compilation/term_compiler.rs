@@ -99,6 +99,7 @@ impl TermCompiler {
 
                         // Use that segment to access var_name[expression]
                         VmWriter::write_pop(&Segment::Pointer, 1, written)?;
+                        VmWriter::write_push(&Segment::That, 0, written)?;
                     }
                     "." | "(" => {
                         SubroutineCallCompiler::compile(tokenizer, writer, symbol_tables, written)?
