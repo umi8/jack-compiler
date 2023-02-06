@@ -6,6 +6,7 @@ use crate::symbol_table::symbol::Symbol;
 pub struct SymbolTables {
     class_table: HashMap<String, Symbol>,
     subroutine_table: HashMap<String, Symbol>,
+    pub class_name: String,
 }
 
 impl SymbolTables {
@@ -13,6 +14,7 @@ impl SymbolTables {
         SymbolTables {
             class_table: Default::default(),
             subroutine_table: Default::default(),
+            class_name: "".to_string(),
         }
     }
 

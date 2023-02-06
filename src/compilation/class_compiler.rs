@@ -24,6 +24,7 @@ impl ClassCompiler {
         // className
         tokenizer.advance()?;
         let class_name = String::from(tokenizer.identifier());
+        symbol_tables.class_name = String::from(&class_name);
 
         // {
         tokenizer.advance()?;
@@ -47,7 +48,11 @@ impl ClassCompiler {
                 break;
             }
             match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Constructor | KeyWord::Function | KeyWord::Method => {
+                KeyWord::Constructor | KeyWord::Function => {
+                    symbol_tables.start_subroutine();
+                    SubroutineDecCompiler::compile(tokenizer, symbol_tables, written)?;
+                }
+                KeyWord::Method => {
                     symbol_tables.start_subroutine();
                     symbol_tables.define("this", &class_name, &Kind::Argument);
                     SubroutineDecCompiler::compile(tokenizer, symbol_tables, written)?;
@@ -76,7 +81,7 @@ mod tests {
     fn can_compile() {
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "class Main {{").unwrap();
-        writeln!(src_file, "    function void main() {{").unwrap();
+        writeln!(src_file, "    method void main() {{").unwrap();
         writeln!(src_file, "    }}").unwrap();
         writeln!(src_file, "}}").unwrap();
         src_file.rewind().unwrap();

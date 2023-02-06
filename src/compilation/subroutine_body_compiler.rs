@@ -36,13 +36,11 @@ impl SubroutineBodyCompiler {
             }
         }
 
-        if let Some(class_name) = symbol_tables.type_of("this") {
-            VmWriter::write_function(
-                format!("{class_name}.{subroutine_name}").as_str(),
-                symbol_tables.var_count(Kind::Var),
-                written,
-            )?;
-        }
+        VmWriter::write_function(
+            format!("{}.{}", symbol_tables.class_name, subroutine_name).as_str(),
+            symbol_tables.var_count(Kind::Var),
+            written,
+        )?;
 
         Self::set_pointer(symbol_tables, subroutine_type, written)?;
 

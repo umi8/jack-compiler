@@ -37,7 +37,7 @@ impl LetStatementCompiler {
                     Kind::Static | Kind::Field | Kind::Var => {
                         symbol_tables.index_of(&var_name).unwrap()
                     }
-                    Kind::Argument => symbol_tables.index_of(&var_name).unwrap() - 1,
+                    Kind::Argument => symbol_tables.index_of(&var_name).unwrap(),
                 };
                 VmWriter::write_push(&segment, index, written)?;
             }
@@ -72,7 +72,7 @@ impl LetStatementCompiler {
                 Kind::Static | Kind::Field | Kind::Var => {
                     symbol_tables.index_of(&var_name).unwrap()
                 }
-                Kind::Argument => symbol_tables.index_of(&var_name).unwrap() - 1,
+                Kind::Argument => symbol_tables.index_of(&var_name).unwrap(),
             };
             VmWriter::write_pop(&segment, index, written)?;
         }

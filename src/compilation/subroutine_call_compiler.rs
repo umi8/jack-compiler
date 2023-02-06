@@ -31,7 +31,7 @@ impl SubroutineCallCompiler {
                     Kind::Static | Kind::Field | Kind::Var => {
                         symbol_tables.index_of(&var_class_name).unwrap()
                     }
-                    Kind::Argument => symbol_tables.index_of(&var_class_name).unwrap() - 1,
+                    Kind::Argument => symbol_tables.index_of(&var_class_name).unwrap(),
                 };
                 VmWriter::write_push(&segment, index, written)?;
                 number_of_args += 1;
@@ -57,7 +57,7 @@ impl SubroutineCallCompiler {
             VmWriter::write_push(&Segment::Pointer, 0, written)?;
             number_of_args += 1;
 
-            let class_name = symbol_tables.type_of("this").unwrap();
+            let class_name = String::from(&symbol_tables.class_name);
             let subroutine_name = String::from(tokenizer.identifier());
             format!("{class_name}.{subroutine_name}")
         };
