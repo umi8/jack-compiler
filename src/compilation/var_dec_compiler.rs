@@ -14,13 +14,17 @@ impl VarDecCompiler {
         tokenizer.advance()?;
 
         // type
-        let type_name = String::from(tokenizer.peek()?.value());
-        tokenizer.advance()?;
+        let type_name = {
+            tokenizer.advance()?;
+            String::from(tokenizer.identifier())
+        };
 
         // varName
-        let var_name = String::from(tokenizer.peek()?.value());
+        let var_name = {
+            tokenizer.advance()?;
+            String::from(tokenizer.identifier())
+        };
         symbol_tables.define(&var_name, &type_name, &Kind::Var);
-        tokenizer.advance()?;
 
         // (’,’ varName)*
         loop {
