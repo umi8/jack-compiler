@@ -50,6 +50,17 @@ impl SymbolTables {
         }
     }
 
+    pub fn get(&mut self, name: &str) -> Option<&Symbol> {
+        match self.subroutine_table.get(name) {
+            Some(s) => Some(s),
+            None => match self.class_table.get(name) {
+                Some(s) => Some(s),
+                None => None,
+            },
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn kind_of(&mut self, name: &str) -> Option<&Kind> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(&s.kind),
@@ -71,6 +82,7 @@ impl SymbolTables {
         }
     }
 
+    #[allow(dead_code)]
     pub fn index_of(&mut self, name: &str) -> Option<usize> {
         match self.subroutine_table.get(name) {
             Some(s) => Some(s.index),

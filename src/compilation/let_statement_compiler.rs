@@ -3,7 +3,6 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
-use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::writer::command::Command;
@@ -31,15 +30,8 @@ impl LetStatementCompiler {
         if tokenizer.peek()?.value() == "[" {
             is_array = true;
 
-            if let Some(kind) = symbol_tables.kind_of(&var_name) {
-                let segment = Segment::from(kind);
-                let index = match kind {
-                    Kind::Static | Kind::Field | Kind::Var => {
-                        symbol_tables.index_of(&var_name).unwrap()
-                    }
-                    Kind::Argument => symbol_tables.index_of(&var_name).unwrap(),
-                };
-                VmWriter::write_push(&segment, index, written)?;
+            if let Some(symbol) = symbol_tables.get(&var_name) {
+                VmWriter::write_push(&Segment::from(&symbol.kind), symbol.index, written)?;
             }
 
             // ’[’
@@ -66,15 +58,8 @@ impl LetStatementCompiler {
             // and access that array element using a "that 0" reference.
             VmWriter::write_push(&Segment::Temp, 0, written)?;
             VmWriter::write_pop(&Segment::That, 0, written)?;
-        } else if let Some(kind) = symbol_tables.kind_of(&var_name) {
-            let segment = Segment::from(kind);
-            let index = match kind {
-                Kind::Static | Kind::Field | Kind::Var => {
-                    symbol_tables.index_of(&var_name).unwrap()
-                }
-                Kind::Argument => symbol_tables.index_of(&var_name).unwrap(),
-            };
-            VmWriter::write_pop(&segment, index, written)?;
+        } else if let Some(symbol) = symbol_tables.get(&var_name) {
+            VmWriter::write_pop(&Segment::from(&symbol.kind), symbol.index, written)?;
         }
 
         // ’;’
