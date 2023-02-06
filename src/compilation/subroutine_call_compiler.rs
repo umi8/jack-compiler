@@ -3,7 +3,6 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::compilation::expression_list_compiler::ExpressionListCompiler;
-use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::writer::segment::Segment;
@@ -25,15 +24,8 @@ impl SubroutineCallCompiler {
         let subroutine_name = if tokenizer.peek()?.value() == "." {
             let var_class_name = String::from(tokenizer.identifier());
 
-            if let Some(kind) = symbol_tables.kind_of(&var_class_name) {
-                let segment = Segment::from(kind);
-                let index = match kind {
-                    Kind::Static | Kind::Field | Kind::Var => {
-                        symbol_tables.index_of(&var_class_name).unwrap()
-                    }
-                    Kind::Argument => symbol_tables.index_of(&var_class_name).unwrap() - 1,
-                };
-                VmWriter::write_push(&segment, index, written)?;
+            if let Some(symbol) = symbol_tables.get(&var_class_name) {
+                VmWriter::write_push(&Segment::from(&symbol.kind), symbol.index, written)?;
                 number_of_args += 1;
             }
 
@@ -57,7 +49,7 @@ impl SubroutineCallCompiler {
             VmWriter::write_push(&Segment::Pointer, 0, written)?;
             number_of_args += 1;
 
-            let class_name = symbol_tables.type_of("this").unwrap();
+            let class_name = String::from(&symbol_tables.class_name);
             let subroutine_name = String::from(tokenizer.identifier());
             format!("{class_name}.{subroutine_name}")
         };
@@ -82,7 +74,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
-    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -128,7 +119,7 @@ call Output.printInt 2
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("this", "Output", &Kind::Argument);
+        symbol_tables.class_name = String::from("Output");
 
         let result =
             SubroutineCallCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);

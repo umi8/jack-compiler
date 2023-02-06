@@ -86,7 +86,7 @@ mod tests {
     #[test]
     fn can_compile_if_else() {
         let expected = "\
-push argument 0
+push argument 1
 push local 0
 and
 push constant 0

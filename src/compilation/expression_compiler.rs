@@ -21,25 +21,23 @@ impl ExpressionCompiler {
         TermCompiler::compile(tokenizer, symbol_tables, written)?;
 
         // (op term)*
-        loop {
-            if tokenizer.peek()?.is_op() {
-                // op
+        while tokenizer.peek()?.is_op() {
+            // op
+            let op = {
                 tokenizer.advance()?;
-                let op = tokenizer.symbol();
+                tokenizer.symbol()
+            };
 
-                // term
-                TermCompiler::compile(tokenizer, symbol_tables, written)?;
+            // term
+            TermCompiler::compile(tokenizer, symbol_tables, written)?;
 
-                if let Some(command) = Command::from(op) {
-                    VmWriter::write_arithmetic(&command, written)?;
-                } else if op == '*' {
-                    VmWriter::write_call("Math.multiply", 2, written)?;
-                } else {
-                    // in case of '/'(divide)
-                    VmWriter::write_call("Math.divide", 2, written)?;
-                }
+            if let Some(command) = Command::from(op) {
+                VmWriter::write_arithmetic(&command, written)?;
+            } else if op == '*' {
+                VmWriter::write_call("Math.multiply", 2, written)?;
             } else {
-                break;
+                // in case of '/'(divide)
+                VmWriter::write_call("Math.divide", 2, written)?;
             }
         }
 

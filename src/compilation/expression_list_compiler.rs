@@ -22,16 +22,16 @@ impl ExpressionListCompiler {
             // expression
             ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
             expression_count += 1;
+        }
 
-            // (’,’ expression)*
-            while tokenizer.peek()?.value() == "," {
-                // ’,’
-                tokenizer.advance()?;
+        // (’,’ expression)*
+        while tokenizer.peek()?.value() == "," {
+            // ’,’
+            tokenizer.advance()?;
 
-                // expression
-                ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
-                expression_count += 1;
-            }
+            // expression
+            ExpressionCompiler::compile(tokenizer, symbol_tables, written)?;
+            expression_count += 1;
         }
 
         Ok(expression_count)

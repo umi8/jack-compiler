@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::compilation::expression_compiler::ExpressionCompiler;
 use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
-use crate::symbol_table::kind::Kind;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 use crate::tokenizer::key_word::KeyWord;
@@ -74,15 +73,12 @@ impl TermCompiler {
                         tokenizer.advance()?;
                         let var_name = String::from(tokenizer.identifier());
 
-                        if let Some(kind) = symbol_tables.kind_of(&var_name) {
-                            let segment = Segment::from(kind);
-                            let index = match kind {
-                                Kind::Static | Kind::Field | Kind::Var => {
-                                    symbol_tables.index_of(&var_name).unwrap()
-                                }
-                                Kind::Argument => symbol_tables.index_of(&var_name).unwrap() - 1,
-                            };
-                            VmWriter::write_push(&segment, index, written)?;
+                        if let Some(symbol) = symbol_tables.get(&var_name) {
+                            VmWriter::write_push(
+                                &Segment::from(&symbol.kind),
+                                symbol.index,
+                                written,
+                            )?;
                         }
 
                         // '['
@@ -107,15 +103,12 @@ impl TermCompiler {
                         tokenizer.advance()?;
                         let var_name = String::from(tokenizer.identifier());
 
-                        if let Some(kind) = symbol_tables.kind_of(&var_name) {
-                            let segment = Segment::from(kind);
-                            let index = match kind {
-                                Kind::Static | Kind::Field | Kind::Var => {
-                                    symbol_tables.index_of(&var_name).unwrap()
-                                }
-                                Kind::Argument => symbol_tables.index_of(&var_name).unwrap() - 1,
-                            };
-                            VmWriter::write_push(&segment, index, written)?;
+                        if let Some(symbol) = symbol_tables.get(&var_name) {
+                            VmWriter::write_push(
+                                &Segment::from(&symbol.kind),
+                                symbol.index,
+                                written,
+                            )?;
                         }
                     }
                 }
@@ -171,7 +164,7 @@ mod tests {
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
-        assert_eq!("push argument 0\n", actual);
+        assert_eq!("push argument 1\n", actual);
     }
 
     #[test]

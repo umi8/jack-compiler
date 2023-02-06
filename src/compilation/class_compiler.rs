@@ -22,32 +22,28 @@ impl ClassCompiler {
         tokenizer.advance()?;
 
         // className
-        tokenizer.advance()?;
-        let class_name = String::from(tokenizer.identifier());
+        let class_name = {
+            tokenizer.advance()?;
+            String::from(tokenizer.identifier())
+        };
+        symbol_tables.class_name = String::from(&class_name);
 
         // {
         tokenizer.advance()?;
 
         // classVarDec*
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
-            match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Static | KeyWord::Field => {
-                    ClassVarDecCompiler::compile(tokenizer, symbol_tables)?
-                }
-                _ => break,
-            }
+        while Self::exist_class_var_dec(tokenizer)? {
+            ClassVarDecCompiler::compile(tokenizer, symbol_tables)?;
         }
 
         // subroutineDec*
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
+        while KeyWord::exists(tokenizer.peek()?.value()) {
             match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Constructor | KeyWord::Function | KeyWord::Method => {
+                KeyWord::Constructor | KeyWord::Function => {
+                    symbol_tables.start_subroutine();
+                    SubroutineDecCompiler::compile(tokenizer, symbol_tables, written)?;
+                }
+                KeyWord::Method => {
                     symbol_tables.start_subroutine();
                     symbol_tables.define("this", &class_name, &Kind::Argument);
                     SubroutineDecCompiler::compile(tokenizer, symbol_tables, written)?;
@@ -60,6 +56,16 @@ impl ClassCompiler {
         tokenizer.advance()?;
 
         Ok(())
+    }
+
+    fn exist_class_var_dec(tokenizer: &JackTokenizer) -> Result<bool> {
+        if !KeyWord::exists(tokenizer.peek()?.value()) {
+            return Ok(false);
+        }
+        match KeyWord::from(tokenizer.peek()?.value())? {
+            KeyWord::Static | KeyWord::Field => Ok(true),
+            _ => Ok(false),
+        }
     }
 }
 
@@ -76,7 +82,7 @@ mod tests {
     fn can_compile() {
         let mut src_file = tempfile::NamedTempFile::new().unwrap();
         writeln!(src_file, "class Main {{").unwrap();
-        writeln!(src_file, "    function void main() {{").unwrap();
+        writeln!(src_file, "    method void main() {{").unwrap();
         writeln!(src_file, "    }}").unwrap();
         writeln!(src_file, "}}").unwrap();
         src_file.rewind().unwrap();

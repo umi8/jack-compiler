@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn can_compile() {
         let expected = "\
-push argument 0
+push argument 1
 push constant 2
 call Math.multiply 2
 return

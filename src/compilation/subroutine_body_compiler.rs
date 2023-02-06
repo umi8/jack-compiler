@@ -26,23 +26,17 @@ impl SubroutineBodyCompiler {
         tokenizer.advance()?;
 
         // varDec*
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
-            match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Var => VarDecCompiler::compile(tokenizer, symbol_tables)?,
-                _ => break,
-            }
+        while KeyWord::exists(tokenizer.peek()?.value())
+            && KeyWord::from(tokenizer.peek()?.value())? == KeyWord::Var
+        {
+            VarDecCompiler::compile(tokenizer, symbol_tables)?
         }
 
-        if let Some(class_name) = symbol_tables.type_of("this") {
-            VmWriter::write_function(
-                format!("{class_name}.{subroutine_name}").as_str(),
-                symbol_tables.var_count(Kind::Var),
-                written,
-            )?;
-        }
+        VmWriter::write_function(
+            format!("{}.{}", symbol_tables.class_name, subroutine_name).as_str(),
+            symbol_tables.var_count(Kind::Var),
+            written,
+        )?;
 
         Self::set_pointer(symbol_tables, subroutine_type, written)?;
 
@@ -111,7 +105,7 @@ function Test.convert 3
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("this", "Test", &Kind::Argument);
+        symbol_tables.class_name = String::from("Test");
 
         let result = SubroutineBodyCompiler::compile(
             &mut tokenizer,
@@ -157,9 +151,9 @@ return
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
+        symbol_tables.class_name = String::from("SquareGame");
         symbol_tables.define("square", "Square", &Kind::Field);
         symbol_tables.define("direction", "int", &Kind::Field);
-        symbol_tables.define("this", "SquareGame", &Kind::Argument);
 
         let result = SubroutineBodyCompiler::compile(
             &mut tokenizer,

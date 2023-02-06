@@ -8,7 +8,7 @@ pub struct ParameterListCompiler {}
 
 impl ParameterListCompiler {
     pub fn compile(tokenizer: &mut JackTokenizer, symbol_tables: &mut SymbolTables) -> Result<()> {
-        // ((type varName) (’,’ type varName)*)?
+        // (type varName)?
         if tokenizer.peek()?.is_type()? {
             // type
             let type_name = String::from(tokenizer.peek()?.value());
@@ -18,21 +18,21 @@ impl ParameterListCompiler {
             let var_name = String::from(tokenizer.peek()?.value());
             symbol_tables.define(&var_name, &type_name, &Kind::Argument);
             tokenizer.advance()?;
+        }
 
-            // (’,’ type varName)*
-            while tokenizer.peek()?.value() == "," {
-                // ’,’
-                tokenizer.advance()?;
+        // (’,’ type varName)*
+        while tokenizer.peek()?.value() == "," {
+            // ’,’
+            tokenizer.advance()?;
 
-                // type
-                let type_name = String::from(tokenizer.peek()?.value());
-                tokenizer.advance()?;
+            // type
+            let type_name = String::from(tokenizer.peek()?.value());
+            tokenizer.advance()?;
 
-                // varName
-                let var_name = String::from(tokenizer.peek()?.value());
-                symbol_tables.define(&var_name, &type_name, &Kind::Argument);
-                tokenizer.advance()?;
-            }
+            // varName
+            let var_name = String::from(tokenizer.peek()?.value());
+            symbol_tables.define(&var_name, &type_name, &Kind::Argument);
+            tokenizer.advance()?;
         }
         Ok(())
     }
