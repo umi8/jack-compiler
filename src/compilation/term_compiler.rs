@@ -171,7 +171,7 @@ mod tests {
         let actual = String::from_utf8(output).unwrap();
 
         assert!(result.is_ok());
-        assert_eq!("push argument 0\n", actual);
+        assert_eq!("push argument 1\n", actual);
     }
 
     #[test]

@@ -82,7 +82,6 @@ mod tests {
     use std::io::{Seek, Write};
 
     use crate::compilation::subroutine_call_compiler::SubroutineCallCompiler;
-    use crate::symbol_table::kind::Kind;
     use crate::symbol_table::symbol_tables::SymbolTables;
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
@@ -128,7 +127,7 @@ call Output.printInt 2
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("this", "Output", &Kind::Argument);
+        symbol_tables.class_name = String::from("Output");
 
         let result =
             SubroutineCallCompiler::compile(&mut tokenizer, &mut symbol_tables, &mut output);

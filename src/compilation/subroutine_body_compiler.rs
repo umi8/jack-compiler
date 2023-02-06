@@ -109,7 +109,7 @@ function Test.convert 3
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
-        symbol_tables.define("this", "Test", &Kind::Argument);
+        symbol_tables.class_name = String::from("Test");
 
         let result = SubroutineBodyCompiler::compile(
             &mut tokenizer,
@@ -155,9 +155,9 @@ return
 
         let mut tokenizer = JackTokenizer::new(path).unwrap();
         let mut symbol_tables = SymbolTables::new();
+        symbol_tables.class_name = String::from("SquareGame");
         symbol_tables.define("square", "Square", &Kind::Field);
         symbol_tables.define("direction", "int", &Kind::Field);
-        symbol_tables.define("this", "SquareGame", &Kind::Argument);
 
         let result = SubroutineBodyCompiler::compile(
             &mut tokenizer,
