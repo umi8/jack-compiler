@@ -16,10 +16,7 @@ impl StatementsCompiler {
         symbol_tables: &mut SymbolTables,
         written: &mut impl Write,
     ) -> Result<()> {
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
+        while KeyWord::exists(tokenizer.peek()?.value()) {
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Let | KeyWord::If | KeyWord::While | KeyWord::Do | KeyWord::Return => {
                     StatementCompiler::compile(tokenizer, symbol_tables, written)?;
