@@ -22,6 +22,11 @@ impl DoStatementCompiler {
 
         // subroutineCall
         SubroutineCallCompiler::compile(tokenizer, symbol_tables, written)?;
+
+        // After the called function returns,
+        // the caller's memory segments-argument, local, static, this, that, and pointer-are
+        // the same as before the function call.
+        // However, the temp segment is undefined, so it must be defined.
         VmWriter::write_pop(&Segment::Temp, 0, written)?;
 
         // ’;’
