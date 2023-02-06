@@ -22,8 +22,10 @@ impl ClassCompiler {
         tokenizer.advance()?;
 
         // className
-        tokenizer.advance()?;
-        let class_name = String::from(tokenizer.identifier());
+        let class_name = {
+            tokenizer.advance()?;
+            String::from(tokenizer.identifier())
+        };
         symbol_tables.class_name = String::from(&class_name);
 
         // {
