@@ -17,13 +17,16 @@ impl SubroutineDecCompiler {
         written: &mut impl Write,
     ) -> Result<()> {
         // ’constructor’ | ’function’ | ’method’
-        tokenizer.advance()?;
-        let subroutine_type = String::from(tokenizer.identifier());
-
-        let subroutine_name = {
-            // ’void’ | type
+        let subroutine_type = {
             tokenizer.advance()?;
-            // subroutineName
+            String::from(tokenizer.identifier())
+        };
+
+        // ’void’ | type
+        tokenizer.advance()?;
+
+        // subroutineName
+        let subroutine_name = {
             tokenizer.advance()?;
             String::from(tokenizer.identifier())
         };
