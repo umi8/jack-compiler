@@ -35,10 +35,7 @@ impl ClassCompiler {
         }
 
         // subroutineDec*
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
+        while KeyWord::exists(tokenizer.peek()?.value()) {
             match KeyWord::from(tokenizer.peek()?.value())? {
                 KeyWord::Constructor | KeyWord::Function => {
                     symbol_tables.start_subroutine();
