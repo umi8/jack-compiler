@@ -26,14 +26,10 @@ impl SubroutineBodyCompiler {
         tokenizer.advance()?;
 
         // varDec*
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
-            match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Var => VarDecCompiler::compile(tokenizer, symbol_tables)?,
-                _ => break,
-            }
+        while KeyWord::exists(tokenizer.peek()?.value())
+            && KeyWord::from(tokenizer.peek()?.value())? == KeyWord::Var
+        {
+            VarDecCompiler::compile(tokenizer, symbol_tables)?
         }
 
         VmWriter::write_function(
