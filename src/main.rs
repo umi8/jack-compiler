@@ -6,7 +6,6 @@ use clap::Parser;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compilation::compilation_engine::CompilationEngine;
-use crate::compilation::compilation_engine::XmlCompilationEngine;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
 mod compilation;
@@ -36,7 +35,7 @@ fn main() -> Result<()> {
 
     for file in files {
         let mut output_file = File::create(create_output_file_name(file.path()))?;
-        let mut engine = XmlCompilationEngine::new(JackTokenizer::new(file.path())?);
+        let mut engine = CompilationEngine::new(JackTokenizer::new(file.path())?);
         engine.compile(&mut output_file)?;
     }
 

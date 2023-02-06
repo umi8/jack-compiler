@@ -6,25 +6,20 @@ use crate::compilation::class_compiler::ClassCompiler;
 use crate::symbol_table::symbol_tables::SymbolTables;
 use crate::tokenizer::jack_tokenizer::JackTokenizer;
 
-pub trait CompilationEngine {
-    fn new(tokenizer: JackTokenizer) -> Self;
-    fn compile(&mut self, writer: &mut impl Write) -> Result<()>;
-}
-
-pub struct XmlCompilationEngine {
+pub struct CompilationEngine {
     tokenizer: JackTokenizer,
     symbol_tables: SymbolTables,
 }
 
-impl CompilationEngine for XmlCompilationEngine {
-    fn new(tokenizer: JackTokenizer) -> Self {
-        XmlCompilationEngine {
+impl CompilationEngine {
+    pub fn new(tokenizer: JackTokenizer) -> Self {
+        CompilationEngine {
             tokenizer,
             symbol_tables: SymbolTables::new(),
         }
     }
 
-    fn compile(&mut self, written: &mut impl Write) -> Result<()> {
+    pub fn compile(&mut self, written: &mut impl Write) -> Result<()> {
         ClassCompiler::compile(&mut self.tokenizer, &mut self.symbol_tables, written)?;
         Ok(())
     }
