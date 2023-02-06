@@ -30,16 +30,8 @@ impl ClassCompiler {
         tokenizer.advance()?;
 
         // classVarDec*
-        loop {
-            if !KeyWord::exists(tokenizer.peek()?.value()) {
-                break;
-            }
-            match KeyWord::from(tokenizer.peek()?.value())? {
-                KeyWord::Static | KeyWord::Field => {
-                    ClassVarDecCompiler::compile(tokenizer, symbol_tables)?
-                }
-                _ => break,
-            }
+        while Self::exist_class_var_dec(tokenizer)? {
+            ClassVarDecCompiler::compile(tokenizer, symbol_tables)?;
         }
 
         // subroutineDec*
@@ -65,6 +57,16 @@ impl ClassCompiler {
         tokenizer.advance()?;
 
         Ok(())
+    }
+
+    fn exist_class_var_dec(tokenizer: &JackTokenizer) -> Result<bool> {
+        if !KeyWord::exists(tokenizer.peek()?.value()) {
+            return Ok(false);
+        }
+        match KeyWord::from(tokenizer.peek()?.value())? {
+            KeyWord::Static | KeyWord::Field => Ok(true),
+            _ => Ok(false),
+        }
     }
 }
 
