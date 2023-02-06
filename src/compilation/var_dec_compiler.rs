@@ -27,18 +27,14 @@ impl VarDecCompiler {
         symbol_tables.define(&var_name, &type_name, &Kind::Var);
 
         // (’,’ varName)*
-        loop {
-            if tokenizer.peek()?.token_type() == &Symbol && tokenizer.peek()?.value() == "," {
-                // ','
-                tokenizer.advance()?;
+        while tokenizer.peek()?.token_type() == &Symbol && tokenizer.peek()?.value() == "," {
+            // ','
+            tokenizer.advance()?;
 
-                // varName
-                let var_name = String::from(tokenizer.peek()?.value());
-                symbol_tables.define(&var_name, &type_name, &Kind::Var);
-                tokenizer.advance()?;
-            } else {
-                break;
-            }
+            // varName
+            tokenizer.advance()?;
+            let var_name = String::from(tokenizer.identifier());
+            symbol_tables.define(&var_name, &type_name, &Kind::Var);
         }
 
         // ’;’
