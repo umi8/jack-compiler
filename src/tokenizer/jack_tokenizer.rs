@@ -179,11 +179,12 @@ impl JackTokenizer {
         while index < chars.len() && chars[index].is_alphabetic() {
             value.push(chars[index]);
             index += 1;
-            if KEYWORDS.contains(&value.as_str()) {
-                return Ok((Token::new(TokenType::Keyword, value), index));
-            }
         }
-        Ok((Token::new(TokenType::Identifier, value), index))
+        if KEYWORDS.contains(&value.as_str()) {
+            Ok((Token::new(TokenType::Keyword, value), index))
+        } else {
+            Ok((Token::new(TokenType::Identifier, value), index))
+        }
     }
 
     fn tokenize_int_const(mut index: usize, chars: &Vec<char>) -> Result<(Token, usize)> {
@@ -202,10 +203,11 @@ const SYMBOLS: [char; 19] = [
 
 #[cfg(test)]
 mod tests {
+    use std::collections::VecDeque;
+
     use crate::tokenizer::jack_tokenizer::JackTokenizer;
     use crate::tokenizer::token::Token;
     use crate::tokenizer::token_type::TokenType;
-    use std::collections::VecDeque;
 
     #[test]
     fn is_term_return_true_when_expression_with_parentheses() {
